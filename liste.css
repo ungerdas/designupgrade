@@ -1,0 +1,423 @@
+/* Designupgrade — plakat og språk i torrentlistene (lages av liste.js)
+   Tabellen er sidens egen. Plakaten erstatter kategoribildene i
+   «Kategori»-kolonnen, og navnecellen får en språklinje nederst. */
+
+html:not(.nbx-on) table.nbx-list .nbx-thumb,
+html:not(.nbx-on) table.nbx-list .nbx-langs { display: none !important; }
+
+/* Kompakt: smal kategorikolonne og rader som er akkurat høye nok for plakaten */
+html.nbx-on table.nbx-list tr.nbx-row > td { vertical-align: middle; }
+html.nbx-on table.nbx-list td.nbx-catcell {
+  width: 46px !important;
+  height: 63px;
+  padding: 2px 4px !important;
+}
+/* Uten plakat: kategoribildene krympes så kolonnen kan være smal */
+html.nbx-on table.nbx-list td.nbx-catcell:not(.nbx-has-poster) > div[class^="newcat_main"] {
+  zoom: .62;
+  margin: 0 auto;
+}
+
+/* Plakat i kategoricellen */
+table.nbx-list td.nbx-catcell a.nbx-thumb { display: none; }
+html.nbx-on table.nbx-list td.nbx-catcell.nbx-has-poster > :not(.nbx-thumb) { display: none !important; }
+html.nbx-on table.nbx-list td.nbx-catcell.nbx-has-poster a.nbx-thumb {
+  display: block;
+  width: 42px;
+  height: 63px;
+  margin: 0 auto;
+  border-radius: 2px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .3);
+}
+table.nbx-list a.nbx-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  animation: nbx-fade .3s ease-out;
+}
+@keyframes nbx-fade { from { opacity: 0; } to { opacity: 1; } }
+
+/* Språklinja: «LYD» og «UNDERTEKST» med runde flagg */
+:is(table.nbx-list, .nbx-kortliste) .nbx-langs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 12px;
+  margin-top: 2px;
+  white-space: normal;
+}
+:is(table.nbx-list, .nbx-kortliste) .nbx-langs:empty { display: none; }
+:is(table.nbx-list, .nbx-kortliste) .nbx-lg { display: inline-flex; align-items: center; gap: 2px; }
+:is(table.nbx-list, .nbx-kortliste) .nbx-lg b {
+  margin-right: 3px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: #888;
+}
+:is(table.nbx-list, .nbx-kortliste) .nbx-lg svg {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, .18);
+}
+:is(table.nbx-list, .nbx-kortliste) .nbx-flagtxt,
+:is(table.nbx-list, .nbx-kortliste) .nbx-flagmore {
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 14px;
+  color: #666;
+}
+:is(table.nbx-list, .nbx-kortliste) .nbx-flagtxt { padding: 0 2px; border: 1px solid #ccc; border-radius: 2px; background: #fff; }
+:is(table.nbx-list, .nbx-kortliste) .nbx-flagmore { margin-left: 2px; color: #888; }
+
+/* ================================================================
+   Kortvisning (standard): én boks per torrent,
+   i sidens farger (grå bokser, #ccc-kanter, blå knapp).
+   Den originale tabellen ligger skjult under og kommer tilbake når
+   Designupgrade skrus av, eller med «Tabell» i popupen.
+   ================================================================ */
+html.nbx-on table.nbx-som-kort { display: none !important; }
+html:not(.nbx-on) .nbx-kortliste,
+html:not(.nbx-on) .nbx-sorter { display: none !important; }
+
+.nbx-sorter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 4px;
+  max-width: 1150px;
+  margin: 8px auto 0;
+  font-size: 12px;
+  text-align: left;
+}
+.nbx-sorter span { color: #777; margin-right: 4px; }
+.nbx-sorter a { padding: 1px 6px; border: 1px solid transparent; border-radius: 3px; color: #000; text-decoration: none; }
+.nbx-sorter a:hover { border-color: #ccc; background: #f3f3f3; }
+.nbx-sorter a.nbx-aktiv { border-color: #ccc; background: #f3f3f3; font-weight: 700; }
+
+.nbx-kortliste {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 1150px;
+  margin: 6px auto;
+  text-align: left;
+}
+.nbx-kort {
+  display: grid;
+  grid-template-columns: 62px minmax(0, 1fr) auto;
+  column-gap: 14px;
+  padding: 6px 10px 6px 6px;
+  background: #f3f3f3;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+}
+.nbx-kort:hover { background: #edf1f5; border-color: #b5c2cf; }
+.nbx-kort.nbx-owner { box-shadow: inset 3px 0 0 #496686; }
+
+/* Plakat, eller en farget flis med kategori og oppløsning */
+.nbx-kort a.nbx-kort-plakat {
+  width: 62px;
+  height: 93px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px;
+  overflow: hidden;
+  background: linear-gradient(160deg, var(--kat, #496686), color-mix(in srgb, var(--kat, #496686) 55%, #000));
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .3);
+  text-decoration: none !important;
+}
+.nbx-kort a.nbx-kort-plakat span { display: flex; flex-direction: column; align-items: center; gap: 3px; color: #fff; }
+.nbx-kort a.nbx-kort-plakat b { font-size: 11px; letter-spacing: .04em; }
+.nbx-kort a.nbx-kort-plakat i { font-style: normal; font-size: 10px; padding: 0 4px; border-radius: 2px; background: rgba(0, 0, 0, .25); }
+.nbx-kort a.nbx-kort-plakat img { width: 100%; height: 100%; object-fit: cover; display: block; animation: nbx-fade .3s ease-out; }
+
+/* Midten: navn, metalinje og språk */
+.nbx-kort-midt { display: flex; flex-direction: column; justify-content: center; gap: 7px; min-width: 0; }
+.nbx-kort a.nbx-kort-navn {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 15px;
+  font-weight: 700;
+  color: #000 !important;
+  text-decoration: none !important;
+}
+.nbx-kort a.nbx-kort-navn:hover { text-decoration: underline !important; }
+.nbx-kort-meta { display: flex; flex-wrap: wrap; align-items: center; row-gap: 2px; font-size: 12.5px; color: #555; }
+.nbx-kort-meta > * + *::before { content: "•"; margin: 0 7px; color: #aaa; font-weight: 400; }
+.nbx-kort-meta > * { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
+.nbx-kort-meta svg { width: 13px; height: 13px; }
+.nbx-kort-meta .nbx-ny { color: #d00; font-weight: 700; }
+.nbx-kort-meta a.nbx-rating { color: #9a7400 !important; font-weight: 700; text-decoration: none !important; }
+.nbx-kort-meta .nbx-kat { font-weight: 700; }
+.nbx-kort-meta .nbx-status { color: #b35900; font-weight: 700; }
+.nbx-kort-l3 { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; min-height: 16px; }
+.nbx-kort-l3:empty { display: none; }
+.nbx-kort .nbx-sjangre { font-size: 12px; color: #777; }
+.nbx-kort .nbx-sjangre a { color: #777 !important; font-weight: 400 !important; text-decoration: none !important; }
+.nbx-kort .nbx-sjangre a:hover { color: #000 !important; text-decoration: underline !important; }
+.nbx-kort-meta a.nbx-opplaster { color: #496686 !important; font-weight: 700; text-decoration: none !important; }
+.nbx-kort-meta a.nbx-opplaster:hover { text-decoration: underline !important; }
+.nbx-kort-meta .nbx-alder { color: #777; }
+.nbx-kort .nbx-langs { margin-top: 0; }
+.nbx-kort .nbx-langs:empty { display: none; }
+
+/* Høyre: knapper øverst, tall nederst */
+.nbx-kort-hoyre { display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; gap: 6px; padding: 2px 0; }
+.nbx-kort-knapper { display: flex; align-items: center; gap: 4px; }
+.nbx-kort a.nbx-ikonknapp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  color: #555 !important;
+  text-decoration: none !important;
+}
+.nbx-kort a.nbx-ikonknapp:hover { border-color: #ccc; background: #fff; }
+.nbx-kort a.nbx-lastned {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 4px;
+  padding: 5px 12px;
+  border: 1px solid #3d5878;
+  border-radius: 3px;
+  background: #496686;
+  color: #fff !important;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none !important;
+}
+.nbx-kort a.nbx-lastned:hover { background: #5a7ca3; }
+.nbx-kort a.nbx-lastned svg { width: 14px; height: 14px; }
+
+.nbx-kort-tall { display: flex; gap: 4px; }
+.nbx-kort .nbx-tb {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  background: #fff;
+  color: #000 !important;
+  font-size: 12px;
+  text-decoration: none !important;
+  white-space: nowrap;
+}
+.nbx-kort a.nbx-tb:hover { border-color: #496686; }
+.nbx-kort .nbx-tb svg { width: 13px; height: 13px; color: #777; }
+.nbx-kort .nbx-tb b { font-weight: 700; }
+.nbx-kort .nbx-tb.nbx-null b { color: #888; font-weight: 400; }
+.nbx-kort .nbx-tb-seed svg { color: #2e7d32; }
+.nbx-kort .nbx-tb-leech svg { color: #c62828; }
+.nbx-kort .nbx-tb-seed.nbx-null b { color: #c62828; font-weight: 700; }
+.nbx-kort .nbx-tb-size svg { color: #496686; }
+
+/* Ønskelista: lavere kort, ingen språklinje, alt til høyre på én rad */
+.nbx-kort.nbx-onske { grid-template-columns: 52px minmax(0, 1fr) auto; }
+.nbx-onske a.nbx-kort-plakat { width: 52px; height: 78px; }
+.nbx-onske a.nbx-kort-plakat b { font-size: 10px; }
+.nbx-onske .nbx-kort-midt { gap: 6px; }
+.nbx-onske .nbx-kort-hoyre { flex-direction: row; align-items: center; justify-content: flex-end; gap: 4px; padding: 0; }
+.nbx-onske .nbx-kort-hoyre a.nbx-lastned { margin: 0 4px 0 0; }
+.nbx-kort.nbx-er-oppfylt { box-shadow: inset 3px 0 0 #2e7d32; }
+.nbx-kort a.nbx-til-torrent { background: #2e7d32; border-color: #256628; }
+.nbx-kort a.nbx-til-torrent:hover { background: #388e3c; }
+.nbx-kort-meta .nbx-oppfylt { color: #2e7d32; font-weight: 700; }
+.nbx-kort-meta .nbx-oppfylt a { color: #2e7d32 !important; font-weight: 700; }
+.nbx-kort-meta .nbx-ikke-oppfylt { color: #a33; }
+.nbx-kort .nbx-tb-poeng svg { color: #c99a00; }
+
+/* Språklinja litt større i kortene */
+.nbx-kort .nbx-lg b { font-size: 10.5px; }
+.nbx-kort .nbx-lg svg { width: 16px; height: 16px; }
+.nbx-kort .nbx-flagtxt, .nbx-kort .nbx-flagmore { font-size: 10.5px; line-height: 16px; }
+
+/* ================================================================
+   Kortfarge og -størrelse. liste.js setter klassene på <html>:
+   nbx-mork        mørke kort (mørk modus, BrokenStones, Matrix og andre
+                   temaer med mørk bakgrunn bak lista)
+   nbx-bg-mork     temaet er mørkt bak lista (sorteringslinja får lys tekst)
+   nbx-str-kompakt / nbx-str-mini   mindre kort
+   ================================================================ */
+
+/* Sorteringslinja står rett på temaets bakgrunn */
+html.nbx-bg-mork .nbx-sorter span { color: #8d99a6; }
+html.nbx-bg-mork .nbx-sorter a { color: #d6cfc2; }
+html.nbx-bg-mork .nbx-sorter a:hover,
+html.nbx-bg-mork .nbx-sorter a.nbx-aktiv { border-color: #4a4f55; background: #2c2f33; }
+
+/* --- Mørke kort: koksgrå, nøytral grå som passer BrokenStones og Matrix.
+   Teksten er varm sand (#D6CFC2) og varm off-white (#E7E2D9), ikke skarp hvit. --- */
+html.nbx-mork .nbx-kort { background: #2c2f33; border-color: #3d4146; color: #d6cfc2; }
+html.nbx-mork .nbx-kort:hover { background: #33373c; border-color: #555a61; }
+html.nbx-mork .nbx-kort a.nbx-kort-navn { color: #e7e2d9 !important; }
+html.nbx-mork .nbx-kort-meta { color: #c4bdb0; }
+html.nbx-mork .nbx-kort-meta > * + *::before { color: #6f6a62; }
+html.nbx-mork .nbx-kort-meta .nbx-ny { color: #ff6b6b; }
+html.nbx-mork .nbx-kort-meta a.nbx-rating { color: #f2c94c !important; }
+html.nbx-mork .nbx-kort-meta .nbx-status { color: #f0a050; }
+html.nbx-mork .nbx-kort-meta a.nbx-opplaster { color: #9ec3ea !important; }
+html.nbx-mork .nbx-kort-meta .nbx-alder,
+html.nbx-mork .nbx-kort .nbx-sjangre,
+html.nbx-mork .nbx-kort .nbx-sjangre a { color: #9d978c !important; }
+html.nbx-mork .nbx-kort .nbx-sjangre a:hover { color: #e7e2d9 !important; }
+html.nbx-mork .nbx-kort a.nbx-ikonknapp { color: #c4bdb0 !important; }
+html.nbx-mork .nbx-kort a.nbx-ikonknapp:hover { border-color: #4a4f55; background: #383c42; }
+html.nbx-mork .nbx-kort .nbx-tb { background: #232528; border-color: #3d4146; color: #e7e2d9 !important; }
+html.nbx-mork .nbx-kort a.nbx-tb:hover { border-color: #8a9199; }
+html.nbx-mork .nbx-kort .nbx-tb svg { color: #9d978c; }
+html.nbx-mork .nbx-kort .nbx-tb.nbx-null b { color: #7a756d; }
+html.nbx-mork .nbx-kort .nbx-tb-seed svg { color: #5cc06a; }
+html.nbx-mork .nbx-kort .nbx-tb-leech svg,
+html.nbx-mork .nbx-kort .nbx-tb-seed.nbx-null b { color: #ef6b6b; }
+html.nbx-mork .nbx-kort .nbx-tb-size svg { color: #9ec3ea; }
+html.nbx-mork .nbx-kort .nbx-tb-poeng svg { color: #f2c94c; }
+html.nbx-mork .nbx-kortliste .nbx-lg b,
+html.nbx-mork .nbx-kortliste .nbx-flagmore { color: #9d978c; }
+html.nbx-mork .nbx-kortliste .nbx-flagtxt { background: #232528; border-color: #4a4f55; color: #d6cfc2; }
+html.nbx-mork .nbx-kortliste .nbx-lg svg { box-shadow: 0 0 0 1px rgba(255, 255, 255, .15); }
+html.nbx-mork .nbx-kort a.nbx-kort-plakat { box-shadow: 0 1px 3px rgba(0, 0, 0, .6); }
+html.nbx-mork .nbx-kort.nbx-er-oppfylt { box-shadow: inset 3px 0 0 #5cc06a; }
+html.nbx-mork .nbx-kort-meta .nbx-oppfylt,
+html.nbx-mork .nbx-kort-meta .nbx-oppfylt a { color: #5cc06a !important; }
+html.nbx-mork .nbx-kort-meta .nbx-ikke-oppfylt { color: #ef6b6b; }
+html.nbx-mork .nbx-kort.nbx-owner { box-shadow: inset 3px 0 0 #9ec3ea; }
+
+/* --- Mørkt tema for hele siden (popupen): kortene følger temaets blågrå
+   farger i stedet for koksgrått. Variablene kommer fra tema-mork.css. --- */
+html.nbx-tema-mork .nbx-sorter span { color: var(--text-muted, #7a8099); }
+html.nbx-tema-mork .nbx-sorter a { color: var(--text, #d8dce8); }
+html.nbx-tema-mork .nbx-sorter a:hover,
+html.nbx-tema-mork .nbx-sorter a.nbx-aktiv { border-color: var(--border-bright, #3a4060); background: var(--bg-panel, #1e2130); }
+html.nbx-tema-mork.nbx-mork .nbx-kort { background: var(--bg-panel, #1e2130); border-color: var(--border, #2a2f45); color: var(--text, #d8dce8); }
+html.nbx-tema-mork.nbx-mork .nbx-kort:hover { background: #242839; border-color: var(--border-bright, #3a4060); }
+html.nbx-tema-morkere.nbx-mork .nbx-kort:hover { background: var(--bg-hover, #181a21); }
+html.nbx-tema-mork.nbx-mork .nbx-kort a.nbx-kort-navn { color: #eef1f8 !important; }
+html.nbx-tema-mork.nbx-mork .nbx-kort-meta { color: #b4bbcf; }
+html.nbx-tema-mork.nbx-mork .nbx-kort-meta > * + *::before { color: var(--text-dim, #555a75); }
+html.nbx-tema-mork.nbx-mork .nbx-kort-meta .nbx-alder,
+html.nbx-tema-mork.nbx-mork .nbx-kort .nbx-sjangre,
+html.nbx-tema-mork.nbx-mork .nbx-kort .nbx-sjangre a,
+html.nbx-tema-mork.nbx-mork .nbx-kortliste .nbx-lg b,
+html.nbx-tema-mork.nbx-mork .nbx-kortliste .nbx-flagmore { color: var(--text-muted, #7a8099) !important; }
+html.nbx-tema-mork.nbx-mork .nbx-kort .nbx-sjangre a:hover { color: var(--text-bright, #fff) !important; }
+html.nbx-tema-mork.nbx-mork .nbx-kort-meta a.nbx-opplaster { color: var(--text-link, #7aa2ff) !important; }
+html.nbx-tema-mork.nbx-mork .nbx-kort a.nbx-ikonknapp { color: #b4bbcf !important; }
+html.nbx-tema-mork.nbx-mork .nbx-kort a.nbx-ikonknapp:hover { border-color: var(--border-bright, #3a4060); background: var(--bg-hover, #2a2f45); }
+html.nbx-tema-mork.nbx-mork .nbx-kort .nbx-tb,
+html.nbx-tema-mork.nbx-mork .nbx-kortliste .nbx-flagtxt { background: var(--bg-input, #1a1d28); border-color: var(--border, #2a2f45); }
+html.nbx-tema-mork.nbx-mork .nbx-kort a.nbx-tb:hover { border-color: var(--accent, #4e7cff); }
+html.nbx-tema-mork.nbx-mork .nbx-kort .nbx-tb svg { color: var(--text-muted, #7a8099); }
+html.nbx-tema-mork.nbx-mork .nbx-kort .nbx-tb-size svg { color: var(--text-link, #7aa2ff); }
+html.nbx-tema-mork.nbx-mork .nbx-kort.nbx-owner { box-shadow: inset 3px 0 0 var(--accent, #4e7cff); }
+html.nbx-tema-mork.nbx-mork .nbx-kort a.nbx-lastned { border-color: var(--accent-dim, #3a5cc4); background: var(--accent-dim, #3a5cc4); border-radius: var(--radius-sm, 3px); }
+html.nbx-tema-mork.nbx-mork .nbx-kort a.nbx-lastned:hover { background: var(--accent, #4e7cff); }
+/* «Enda mørkere» er uten blått: hvit «Last ned» med svart tekst, som knappene ellers */
+html.nbx-tema-morkere.nbx-mork .nbx-kort a.nbx-lastned { background: #eceef2; border-color: #eceef2; color: #0b0c0f !important; }
+html.nbx-tema-morkere.nbx-mork .nbx-kort a.nbx-lastned:hover { background: #ffffff; border-color: #ffffff; }
+
+/* --- Kompakt --- */
+html.nbx-str-kompakt :is(.nbx-kortliste, .nbx-sorter) { max-width: 920px; }
+html.nbx-str-kompakt .nbx-kort { grid-template-columns: 44px minmax(0, 1fr) auto; column-gap: 10px; padding: 4px 8px 4px 4px; }
+html.nbx-str-kompakt .nbx-kort a.nbx-kort-plakat { width: 44px; height: 66px; }
+html.nbx-str-kompakt .nbx-kort a.nbx-kort-plakat b { font-size: 9px; }
+html.nbx-str-kompakt .nbx-kort a.nbx-kort-plakat i { display: none; }
+html.nbx-str-kompakt .nbx-kort-midt { gap: 3px; }
+html.nbx-str-kompakt .nbx-kort a.nbx-kort-navn { font-size: 13.5px; }
+html.nbx-str-kompakt .nbx-kort-meta { font-size: 12px; }
+html.nbx-str-kompakt .nbx-kort-meta > * + *::before { margin: 0 5px; }
+html.nbx-str-kompakt .nbx-kort .nbx-sjangre { font-size: 11.5px; }
+html.nbx-str-kompakt .nbx-kort .nbx-lg svg { width: 14px; height: 14px; }
+html.nbx-str-kompakt .nbx-kort-hoyre { gap: 4px; padding: 0; }
+html.nbx-str-kompakt .nbx-kort a.nbx-ikonknapp { width: 22px; height: 22px; }
+html.nbx-str-kompakt .nbx-kort a.nbx-lastned { padding: 3px 9px; font-size: 12px; }
+html.nbx-str-kompakt .nbx-kort .nbx-tb { padding: 2px 6px; font-size: 11.5px; gap: 4px; }
+html.nbx-str-kompakt .nbx-kort .nbx-tb svg { width: 12px; height: 12px; }
+html.nbx-str-kompakt .nbx-kort.nbx-onske { grid-template-columns: 40px minmax(0, 1fr) auto; }
+html.nbx-str-kompakt .nbx-onske a.nbx-kort-plakat { width: 40px; height: 60px; }
+
+/* --- Mini: én tett rad med det viktigste --- */
+html.nbx-str-mini :is(.nbx-kortliste, .nbx-sorter) { max-width: 820px; }
+html.nbx-str-mini .nbx-kort { grid-template-columns: 30px minmax(0, 1fr) auto; column-gap: 8px; padding: 3px 6px 3px 3px; }
+html.nbx-str-mini .nbx-kort a.nbx-kort-plakat { width: 30px; height: 45px; }
+html.nbx-str-mini .nbx-kort a.nbx-kort-plakat b { font-size: 7.5px; letter-spacing: 0; }
+html.nbx-str-mini .nbx-kort a.nbx-kort-plakat i { display: none; }
+html.nbx-str-mini .nbx-kort-midt { gap: 1px; }
+html.nbx-str-mini .nbx-kort a.nbx-kort-navn { font-size: 12.5px; }
+html.nbx-str-mini .nbx-kort-meta { font-size: 11px; }
+html.nbx-str-mini .nbx-kort-meta > * + *::before { margin: 0 4px; }
+html.nbx-str-mini .nbx-kort-meta svg { width: 11px; height: 11px; }
+html.nbx-str-mini .nbx-kort .nbx-sjangre { display: none; }
+html.nbx-str-mini .nbx-kort .nbx-lg b { font-size: 8px; }
+html.nbx-str-mini .nbx-kort .nbx-lg svg { width: 12px; height: 12px; }
+html.nbx-str-mini .nbx-kort .nbx-flagtxt,
+html.nbx-str-mini .nbx-kort .nbx-flagmore { font-size: 8.5px; line-height: 12px; }
+html.nbx-str-mini .nbx-kort-l3 { min-height: 12px; }
+html.nbx-str-mini .nbx-kort-hoyre { flex-direction: row-reverse; align-items: center; gap: 4px; padding: 0; }
+html.nbx-str-mini .nbx-kort-knapper { gap: 2px; }
+html.nbx-str-mini .nbx-kort a.nbx-ikonknapp { width: 20px; height: 20px; }
+/* «Last ned» blir bare pila, og metalinja holdes på én linje, så kortet er like lavt */
+html.nbx-str-mini .nbx-kort a.nbx-lastned { margin-left: 2px; padding: 4px 7px; font-size: 0; gap: 0; }
+html.nbx-str-mini .nbx-kort-meta { flex-wrap: nowrap; overflow: hidden; }
+html.nbx-str-mini .nbx-kort a.nbx-lastned svg { width: 12px; height: 12px; }
+html.nbx-str-mini .nbx-kort-tall { gap: 3px; }
+html.nbx-str-mini .nbx-kort .nbx-tb { padding: 1px 5px; font-size: 11px; gap: 3px; }
+html.nbx-str-mini .nbx-kort .nbx-tb svg { width: 11px; height: 11px; }
+html.nbx-str-mini .nbx-kort.nbx-onske { grid-template-columns: 30px minmax(0, 1fr) auto; }
+html.nbx-str-mini .nbx-onske a.nbx-kort-plakat { width: 30px; height: 45px; }
+
+/* Stor plakat når musa holdes over plakaten (liste.js) */
+.nbx-stor-plakat {
+  position: fixed;
+  z-index: 2147483000;
+  width: 230px;
+  height: 345px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #111;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .5), 0 0 0 1px rgba(0, 0, 0, .3);
+  pointer-events: none;
+  animation: nbx-fade .15s ease-out;
+}
+.nbx-stor-plakat img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* Topp 10 / Topp 50: plassnummeret først i meta-linja, og ingen knapper til høyre */
+.nbx-kort-meta .nbx-rang { font-weight: 700; color: #1d2733; }
+html.nbx-mork .nbx-kort-meta .nbx-rang { color: #e7e2d9; }
+html.nbx-tema-mork.nbx-mork .nbx-kort-meta .nbx-rang { color: var(--text-bright, #fff); }
+.nbx-topp a.nbx-kort-plakat b.nbx-rangnr { font-size: 15px; letter-spacing: 0; }
+html.nbx-str-kompakt .nbx-topp a.nbx-kort-plakat b.nbx-rangnr { font-size: 12px; }
+html.nbx-str-mini .nbx-topp a.nbx-kort-plakat b.nbx-rangnr { font-size: 10px; }
+.nbx-toppliste { margin: 6px 0 4px; }
+.nbx-topp .nbx-kort-hoyre { justify-content: center; }
+
+/* ---------- Skjul språk (popupen) ----------
+   liste.js merker kort og rader med data-nbx-sprak (da/sv/fi) og setter
+   nbx-skjul-da/-sv/-fi på <html>. «Vis» over lista gir boksen nbx-vis-skjulte,
+   så de skjulte vises nedtonet til man skjuler dem igjen. */
+html.nbx-skjul-da :not(.nbx-vis-skjulte) > [data-nbx-sprak~="da"],
+html.nbx-skjul-sv :not(.nbx-vis-skjulte) > [data-nbx-sprak~="sv"],
+html.nbx-skjul-fi :not(.nbx-vis-skjulte) > [data-nbx-sprak~="fi"] {
+  display: none !important;
+}
+html.nbx-skjul-da .nbx-vis-skjulte > [data-nbx-sprak~="da"],
+html.nbx-skjul-sv .nbx-vis-skjulte > [data-nbx-sprak~="sv"],
+html.nbx-skjul-fi .nbx-vis-skjulte > [data-nbx-sprak~="fi"] {
+  opacity: .5;
+}
+.nbx-skjult-info { margin: 2px auto 6px; font-size: 11px; color: #6b7785; text-align: center; }
+.nbx-skjult-info[hidden] { display: none; }
+.nbx-skjult-info a { color: inherit; text-decoration: underline; cursor: pointer; }
+html.nbx-bg-mork .nbx-skjult-info { color: #9d978c; }
+html.nbx-tema-mork .nbx-skjult-info { color: var(--text-muted, #7a8099); }

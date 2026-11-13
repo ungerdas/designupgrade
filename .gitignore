@@ -1,0 +1,10 @@
+# Lages lokalt / av GitHub, skal ikke i repoet
+dist/
+bygg/
+signert/
+web-ext-artifacts/
+arkiv/
+build.txt
+__pycache__/
+# Notater bare for meg (LES-MEG, AMO-tekster)
+privat/

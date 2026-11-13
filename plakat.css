@@ -1,0 +1,191 @@
+/* Designupgrade — toppdel med plakat og handling på torrentsiden (lages av plakat.js)
+   Fargene er sidens egne: blått fra headeren (#496686) og bakgrunnen (#334f6d),
+   skriften er Tahoma som resten av siden. */
+
+html:not(.nbx-on) .nbx-hero { display: none !important; }
+/* Releasenavnet står nederst i toppdelen, så den vanlige overskriften skjules */
+html.nbx-on .nbx-hero-wrap > h2 { display: none; }
+
+.nbx-hero {
+  position: relative;
+  display: flex;
+  gap: 20px;
+  box-sizing: border-box;
+  min-height: 300px;
+  margin: 8px 0 10px;
+  padding: 14px;
+  border: 1px solid #2b445f;
+  border-radius: 3px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #496686 0%, #3d5878 45%, #334f6d 100%);
+  color: #fff;
+  font: 13px/1.5 tahoma, arial, helvetica, sans-serif;
+  text-align: left;
+}
+.nbx-hero-bg {
+  position: absolute;
+  inset: 0;
+  background: center 25% / cover no-repeat;
+  opacity: .16;
+  mix-blend-mode: luminosity;
+}
+.nbx-hero-bg.nbx-blur { filter: blur(26px); transform: scale(1.2); opacity: .2; }
+.nbx-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(51, 79, 109, .55) 0%, rgba(51, 79, 109, .15) 60%, rgba(51, 79, 109, 0) 100%);
+}
+.nbx-hero > :not(.nbx-hero-bg) { position: relative; z-index: 1; }
+
+/* Plakat */
+.nbx-hero-poster {
+  flex: none;
+  width: 200px;
+  aspect-ratio: 2 / 3;
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, .25);
+  border-radius: 3px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, .08);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .3);
+  color: #fff;
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.nbx-hero-poster img { width: 100%; height: 100%; object-fit: cover; display: block; animation: nbx-fade .3s ease-out; }
+.nbx-hero.nbx-loading .nbx-hero-poster span { opacity: .5; }
+@keyframes nbx-fade { from { opacity: 0; } to { opacity: 1; } }
+
+/* Tekst */
+.nbx-hero-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.nbx-hero-title {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.15;
+  color: #fff;
+}
+.nbx-hero-year { font-weight: 400; font-size: 20px; color: #c9d6e4; }
+.nbx-hero-status { display: flex; flex-wrap: wrap; align-items: center; font-size: 14px; color: #fff; }
+.nbx-hero-status:empty { display: none; }
+.nbx-hero-status > span + span::before { content: "·"; margin: 0 10px; color: #aebfd1; }
+.nbx-hero-status b { font-weight: 700; }
+.nbx-hero-status .nbx-st-on { color: #9be7b1; }
+.nbx-hero-status .nbx-st-off { color: #ffb0b0; }
+
+.nbx-hero-badges { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.nbx-hero-badges:empty { display: none; }
+.nbx-hero .nbx-b {
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.6;
+  padding: 0 7px;
+  border: 1px solid;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+.nbx-hero .nbx-b-vote { color: #ffd34d; border-color: #ffd34d; }
+.nbx-hero .nbx-b-genre { color: #fff; border-color: rgba(255, 255, 255, .5); background: rgba(255, 255, 255, .08); }
+.nbx-hero a.nbx-id {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff !important;
+  text-decoration: none !important;
+}
+.nbx-hero a.nbx-id:hover { text-decoration: underline !important; }
+.nbx-hero a.nbx-id i {
+  font-style: normal;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.5;
+  padding: 0 4px;
+  border-radius: 2px;
+}
+.nbx-hero .nbx-id-imdb i { background: #f5c518; color: #000; }
+.nbx-hero .nbx-id-tmdb i { background: #01b4e4; color: #0d253f; }
+.nbx-hero .nbx-id-tvdb i { background: #6cd491; color: #0b2d1a; }
+
+.nbx-hero p.nbx-hero-plot {
+  margin: 2px 0 0;
+  max-width: 900px;
+  font-size: 13px;
+  line-height: 1.65;
+  color: #e8eef5;
+}
+.nbx-hero p.nbx-hero-plot:empty { display: none; }
+.nbx-hero .nbx-hint { color: #c9d6e4; font-style: italic; }
+
+/* Nederst: releasenavn, tall og «Last ned» */
+.nbx-hero-foot {
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, .18);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.nbx-hero-rel { flex: 1; min-width: 0; }
+.nbx-hero-name { font-weight: 700; font-size: 13px; color: #fff; overflow-wrap: anywhere; }
+.nbx-hero-meta { display: flex; flex-wrap: wrap; margin-top: 2px; font-size: 11px; color: #c9d6e4; }
+.nbx-hero-meta > span + span::before { content: "·"; margin: 0 7px; color: #aebfd1; }
+.nbx-hero-meta .nbx-seed { color: #9be7b1; font-weight: 700; }
+.nbx-hero-meta .nbx-leech { color: #ffb0b0; font-weight: 700; }
+.nbx-hero a.nbx-hero-dl {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  background: #f3f3f3;
+  color: #000 !important;
+  font: 700 12px tahoma, arial, helvetica, sans-serif;
+  text-decoration: none !important;
+}
+.nbx-hero a.nbx-hero-dl:hover { background: #fff; color: #420202 !important; }
+
+/* Mens data hentes */
+.nbx-hero.nbx-loading .nbx-hero-status:empty,
+.nbx-hero.nbx-loading p.nbx-hero-plot:empty {
+  display: block;
+  height: 14px;
+  width: 40%;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, .12);
+}
+.nbx-hero.nbx-loading p.nbx-hero-plot:empty { height: 54px; width: 80%; }
+
+/* Mørkt tema for hele siden (popupen): toppfeltet følger temaets blågrå farger */
+html.nbx-tema-mork .nbx-hero {
+  border-color: var(--border, #2a2f45);
+  border-radius: var(--radius-lg, 8px);
+  background: linear-gradient(135deg, #22263a 0%, #1a1d2b 50%, #14161f 100%);
+  font-family: var(--font, "Segoe UI", system-ui, sans-serif);
+}
+html.nbx-tema-mork .nbx-hero::after {
+  background: linear-gradient(90deg, rgba(15, 17, 23, .6) 0%, rgba(15, 17, 23, .2) 60%, rgba(15, 17, 23, 0) 100%);
+}
+html.nbx-tema-mork .nbx-hero-year,
+html.nbx-tema-mork .nbx-hero-meta,
+html.nbx-tema-mork .nbx-hero .nbx-hint { color: #a9b3cc; }
+/* «Enda mørkere»: nesten svart toppfelt */
+html.nbx-tema-morkere .nbx-hero { background: linear-gradient(135deg, #14151b 0%, #0c0d11 50%, #060709 100%); }
+html.nbx-tema-morkere .nbx-hero::after {
+  background: linear-gradient(90deg, rgba(0, 0, 0, .6) 0%, rgba(0, 0, 0, .2) 60%, rgba(0, 0, 0, 0) 100%);
+}

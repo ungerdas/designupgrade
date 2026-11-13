@@ -1,0 +1,62 @@
+{
+  "manifest_version": 3,
+  "name": "Designupgrade",
+  "version": "3.8.11",
+  "description": "Små designjusteringer: plakat og handling fra TMDB, kortvisning med plakater og språkflagg i torrentlistene, og mørk modus. Resten av siden er original.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "permissions": [
+    "storage",
+    "alarms"
+  ],
+  "host_permissions": [
+    "https://api.themoviedb.org/*"
+  ],
+  "background": {
+    "scripts": [
+      "background.js"
+    ]
+  },
+  "action": {
+    "default_title": "Designupgrade",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://norbits.net/*",
+        "https://www.norbits.net/*"
+      ],
+      "css": [
+        "tema-mork.css", "justeringer.css",
+        "plakat.css",
+        "liste.css"
+      ],
+      "js": [
+        "justeringer.js",
+        "plakat.js",
+        "liste.js"
+      ],
+      "run_at": "document_start"
+    }
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "{898ab047-9f43-4de9-9391-aae997a82e6b}",
+      "strict_min_version": "142.0",
+      "data_collection_permissions": {
+        "required": [
+          "websiteContent"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,162 @@
+# Publiserer Designupgrade når versjonen i manifest.json økes og endringen pushes.
+#
+# To måter, valgt med commit-meldingen:
+#   vanlig        → sendes til AMO som offentlig («listed»). Mozilla gjennomgår og
+#                   publiserer den, og Firefox oppdaterer brukerne automatisk.
+#   «[selv]»      → signeres som selvdistribuert («unlisted»), og den signerte .xpi-fila
+#                   legges ut som GitHub-utgivelse (Releases), klar til å deles.
+#   «[skip ci]»   → ingenting skjer.
+# Begge måtene lager også Chrome-utgaven (…-chrome.zip) og legger den i GitHub-utgivelsen
+# for versjonen. Ved «[selv]» ligger den ved siden av .xpi-fila; ved AMO får utgivelsen
+# bare Chrome-zipen, siden Firefox-brukerne får sin versjon fra AMO.
+# Manuelt: Actions → Publiser → Run workflow, og velg «amo» eller «selv».
+#
+# Versjonen merkes med taggen v<versjon>, så samme versjon ikke sendes to ganger.
+# Hver versjon får med notatene til Mozillas reviewere fra hemmeligheten AMO_NOTATER
+# (så de ikke ligger åpent i repoet), og commit-meldingen blir versjonsnotatet.
+#
+# Krever hemmelighetene AMO_JWT_ISSUER og AMO_JWT_SECRET, og helst AMO_NOTATER
+# (Settings → Secrets and variables → Actions).
+name: Publiser
+
+on:
+  push:
+    branches: [main]
+    paths: [manifest.json]
+  workflow_dispatch:
+    inputs:
+      kanal:
+        description: 'amo = offentlig på AMO, selv = signert .xpi som GitHub-utgivelse'
+        type: choice
+        options: [amo, selv]
+        default: amo
+
+permissions:
+  contents: write
+
+concurrency: publiser
+
+jobs:
+  publiser:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      MELDING: ${{ github.event.head_commit.message }}
+      KANALVALG: ${{ inputs.kanal }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Les versjon og kanal
+        id: v
+        run: |
+          VER=$(python3 -c "import json;print(json.load(open('manifest.json',encoding='utf-8'))['version'])")
+          echo "ver=$VER" >> "$GITHUB_OUTPUT"
+          [ -n "$MELDING" ] || MELDING="$(git log -1 --format=%B 2>/dev/null || true)"
+          if [ "$KANALVALG" = "selv" ] || printf '%s' "$MELDING" | grep -qi '\[selv\]'; then
+            echo "kanal=unlisted" >> "$GITHUB_OUTPUT"; echo "Kanal: selvdistribuert (GitHub-utgivelse)"
+          else
+            echo "kanal=listed" >> "$GITHUB_OUTPUT"; echo "Kanal: offentlig på AMO"
+          fi
+          if git ls-remote --exit-code --tags origin "refs/tags/v$VER" >/dev/null; then
+            echo "ny=nei" >> "$GITHUB_OUTPUT"
+            echo "::notice::v$VER er allerede sendt. Øk \"version\" i manifest.json for å sende en ny."
+          else
+            echo "ny=ja" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Sjekk AMO-nøkler
+        if: steps.v.outputs.ny == 'ja'
+        env:
+          K: ${{ secrets.AMO_JWT_ISSUER }}
+          S: ${{ secrets.AMO_JWT_SECRET }}
+        run: |
+          if [ -z "$K" ] || [ -z "$S" ]; then
+            echo "::error::Mangler AMO_JWT_ISSUER / AMO_JWT_SECRET under Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+
+      - name: Bygg utgaven
+        if: steps.v.outputs.ny == 'ja'
+        run: |
+          python3 tools/lag-utgave.py --mappe bygg
+          python3 tools/lag-utgave.py --chrome
+
+      - name: Lag notater
+        if: steps.v.outputs.ny == 'ja'
+        env:
+          AMO_NOTATER: ${{ secrets.AMO_NOTATER }}
+        run: |
+          [ -n "$MELDING" ] || MELDING="$(git log -1 --format=%B 2>/dev/null || true)"
+          export MELDING
+          python3 - <<'PY'
+          import json, os, re
+          meta = {'version': {'compatibility': ['firefox']}}  # bare Firefox på PC, ikke Android
+          notater = os.environ.get('AMO_NOTATER', '').strip()
+          if notater:
+              meta['version']['approval_notes'] = notater
+          melding = re.sub(r'\[(skip ci|selv)\]', '', os.environ.get('MELDING', ''), flags=re.I)
+          # Signaturlinjer (Co-Authored-By: o.l.) hører til git, ikke versjonsnotatet
+          melding = re.sub(r'(?im)^(co-authored-by|signed-off-by|claude-session):.*\n?', '', melding).strip()
+          if melding and not re.fullmatch(r'Update \S+', melding):
+              meta['version']['release_notes'] = {'en-US': melding}
+          open('melding.txt', 'w', encoding='utf-8').write(melding)
+          json.dump(meta, open('amo-metadata.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=2)
+          # Loggen er offentlig: vis versjonsnotatet, men ikke notatene til reviewerne
+          print('Notater til reviewere:', 'ja' if notater else 'NEI – legg inn hemmeligheten AMO_NOTATER')
+          print('Versjonsnotat:', melding[:300])
+          PY
+
+      - name: Send til AMO
+        if: steps.v.outputs.ny == 'ja'
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.AMO_JWT_ISSUER }}
+          WEB_EXT_API_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+          KANAL: ${{ steps.v.outputs.kanal }}
+        run: |
+          # Offentlig: bare send inn (gjennomgangen kan ta dager). Selv: vent på signeringen
+          # (vanligvis minutter) og last ned den signerte .xpi-fila.
+          if [ "$KANAL" = "listed" ]; then VENT=0; else VENT=1800000; fi
+          set +e
+          npx --yes web-ext@8 sign --channel "$KANAL" --source-dir bygg \
+            --artifacts-dir signert --approval-timeout "$VENT" --amo-metadata amo-metadata.json 2>&1 | tee amo.log
+          rc=${PIPESTATUS[0]}
+          set -e
+          if [ "$rc" -ne 0 ]; then
+            if grep -qi "already exists" amo.log && [ "$KANAL" = "listed" ]; then
+              echo "::notice::Versjon ${{ steps.v.outputs.ver }} finnes allerede på AMO. Merker den som sendt."
+            elif grep -qi "metadata" amo.log; then
+              echo "::error::AMO avviste innsendingen (se loggen over)."
+              exit "$rc"
+            else
+              exit "$rc"
+            fi
+          fi
+
+      # Lager taggen v<versjon> (som merker versjonen som sendt) og GitHub-utgivelsen.
+      - name: Lag GitHub-utgivelse
+        if: steps.v.outputs.ny == 'ja'
+        env:
+          KANAL: ${{ steps.v.outputs.kanal }}
+        run: |
+          VER=${{ steps.v.outputs.ver }}
+          CRX="designupgrade-$VER-chrome.zip"
+          cp "dist/$CRX" "$CRX"
+          FILER=("$CRX")
+          if [ "$KANAL" = "unlisted" ]; then
+            XPI="designupgrade-$VER.xpi"
+            mv signert/*.xpi "$XPI"
+            FILER=("$XPI" "$CRX")
+          fi
+          {
+            cat melding.txt; echo; echo
+            if [ "$KANAL" = "unlisted" ]; then
+              echo "**Firefox:** last ned **$XPI** under og dra fila inn i Firefox (142 eller nyere, PC)."
+              echo "Den erstatter en eldre versjon, og TMDB-nøkkelen og innstillingene blir med."
+            else
+              echo "**Firefox:** oppdateres automatisk fra Mozillas utvidelsesside når Mozilla har godkjent versjonen."
+            fi
+            echo
+            echo "**Chrome:** last ned **$CRX**, pakk den ut over den gamle mappa og trykk «Last inn på nytt» (↻)"
+            echo "på Designupgrade i chrome://extensions. Første gang: se LES-MEG.txt i zip-fila."
+          } > notater.md
+          gh release create "v$VER" "${FILER[@]}" --target "$GITHUB_SHA" --title "Designupgrade $VER" --notes-file notater.md

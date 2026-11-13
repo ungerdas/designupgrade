@@ -1,0 +1,2544 @@
+/* ============================================================
+   Dark Theme Redesign v1.0.2 – laget av tavi206
+   «Same'ish layout, a bit more modern/dark aesthetic. Feel free to improve
+   or do whatever.»
+   ------------------------------------------------------------
+   Lagt inn i Designupgrade («Mørk modus» i popupen: Mørk eller Enda mørkere):
+   - alle regler gjelder bare når html har klassene nbx-on og nbx-tema-mork
+     (:where() holder spesifisiteten lik originalen)
+   - Google Fonts-importen er fjernet (ingen eksterne kall); Inter brukes hvis
+     den finnes på maskinen, ellers Segoe UI / system-ui
+   - logoen fra i.postimg.cc er byttet ut med sidens egen logo uten den
+     blå bakgrunnen (bygd inn nederst i fila), og donérknappen har fått en
+     mørk utgave. «Enda mørkere» (klassen nbx-tema-morkere) har nesten svart
+     bakgrunn.
+   - noen bokser som temaet gjorde fullbredde, er smale og midtstilte som
+     originalt (meldingsboksen, Topp 10, kunngjøringer, ønskelista, forumet),
+     og søkeboksen, knappene og ikonene øverst er rettet. Se «Designupgrade:
+     rettinger» nederst.
+   Nye regler skrives med  :where(html.nbx-on.nbx-tema-mork)  først.
+   ============================================================ */
+
+:where(html.nbx-on.nbx-tema-mork) {
+  --bg-page: #0f1117;
+  --bg-container: #16181f;
+  --bg-panel: #1e2130;
+  /* --bg-panel-alt: #252838; */
+  --bg-panel-alt: rgba(255, 255, 255, 0.04);
+  --bg-input: #1a1d28;
+  --bg-hover: #2a2f45;
+  --bg-active: #3a4060;
+
+  --bg-header: #111420;
+  --bg-header-grad: linear-gradient(180deg, #1a1e30 0%, #111420 100%);
+
+  --accent: #4e7cff;
+  --accent-dim: #3a5cc4;
+  --accent-glow: rgba(78, 124, 255, 0.15);
+  --accent-red: #ff4e4e;
+  --accent-green: #3ecf6a;
+  --accent-yellow: #f5c542;
+
+  --border: #2a2f45;
+  --border-bright: #3a4060;
+
+  --text: #d8dce8;
+  --text-muted: #7a8099;
+  --text-bright: #ffffff;
+  --text-dim: #555a75;
+  --text-link: #7aa2ff;
+  --text-link-hover: #a8c0ff;
+
+  --radius-sm: 3px;
+  --radius: 5px;
+  --radius-lg: 8px;
+
+  --font: "Inter", "Segoe UI", system-ui, sans-serif;
+  --font-size: 12px;
+  --font-mono: "JetBrains Mono", "Fira Code", "Courier New", monospace;
+}
+
+/* ── Reset ─────────────────────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) *,
+:where(html.nbx-on.nbx-tema-mork) *::before,
+:where(html.nbx-on.nbx-tema-mork) *::after {
+  box-sizing: border-box;
+}
+html:where(.nbx-on.nbx-tema-mork),
+:where(html.nbx-on.nbx-tema-mork) body {
+  height: 100%;
+}
+
+:where(html.nbx-on.nbx-tema-mork) body {
+  background-color: var(--bg-page);
+  background-image:
+    radial-gradient(
+      ellipse at 20% 0%,
+      rgba(78, 124, 255, 0.06) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse at 80% 100%,
+      rgba(78, 124, 255, 0.04) 0%,
+      transparent 50%
+    );
+  font-family: var(--font);
+  font-size: var(--font-size);
+  line-height: 1.5;
+  color: var(--text);
+  padding: 0;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+:where(html.nbx-on.nbx-tema-mork) img {
+  border: none;
+}
+:where(html.nbx-on.nbx-tema-mork) b {
+  font-weight: 700;
+}
+:where(html.nbx-on.nbx-tema-mork) table {
+  border-spacing: 0;
+  border-collapse: collapse;
+}
+
+:where(html.nbx-on.nbx-tema-mork) a {
+  color: var(--text-link);
+  text-decoration: none;
+}
+:where(html.nbx-on.nbx-tema-mork) a:hover {
+  color: var(--text-link-hover);
+}
+:where(html.nbx-on.nbx-tema-mork) a.normal {
+  font-weight: 400 !important;
+}
+:where(html.nbx-on.nbx-tema-mork) a img {
+  text-decoration: none;
+}
+
+:where(html.nbx-on.nbx-tema-mork) textarea,
+:where(html.nbx-on.nbx-tema-mork) input {
+  font-family: var(--font);
+  font-size: var(--font-size);
+  background-color: var(--bg-input);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 4px 6px;
+}
+:where(html.nbx-on.nbx-tema-mork) textarea:focus,
+:where(html.nbx-on.nbx-tema-mork) input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-glow);
+}
+
+/* ── Login ───────────────────────────────────────────────── */
+
+:where(html.nbx-on.nbx-tema-mork) form[action="takelogin.php"] {
+  background-color: var(--bg-panel);
+  border: 1px solid var(--border);
+  padding: 20px;
+  width: 600px;
+  margin: 100px auto;
+  border-radius: var(--radius);
+}
+
+/* ── Container ─────────────────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) #container {
+  margin: 20px auto;
+  border: 1px solid var(--border);
+  background-color: var(--bg-container);
+  display: flow-root;
+  position: relative;
+  padding-top: 100px;
+  z-index: 1;
+  border-radius: var(--radius-lg);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.04),
+    0 8px 40px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+}
+
+/* ── Header ─────────────────────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) #header_logo {
+  height: 100px;
+  background: var(--bg-header-grad);
+  border-bottom: 1px solid var(--border);
+  width: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+:where(html.nbx-on.nbx-tema-mork) #header_toolbar {
+  height: 100px;
+  width: 55%;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+:where(html.nbx-on.nbx-tema-mork) #header_toolbar #inner_toolbar {
+  position: absolute;
+  bottom: 14px;
+  left: 0;
+  right: 12px;
+  height: 40px;
+}
+
+:where(html.nbx-on.nbx-tema-mork) #header_toolbar div#donate {
+  position: absolute;
+  left: 0;
+  top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+:where(html.nbx-on.nbx-tema-mork) #header_toolbar #connectable {
+  position: absolute;
+  right: 5px;
+  top: 15px;
+  font-weight: 600;
+}
+
+:where(html.nbx-on.nbx-tema-mork) #header_toolbar #userinfo {
+  position: absolute;
+  bottom: 8px;
+  left: 5px;
+  line-height: 1.6;
+}
+
+:where(html.nbx-on.nbx-tema-mork) #header_toolbar #date {
+  position: absolute;
+  right: 5px;
+  bottom: 24px;
+  font-size: 11px;
+}
+
+:where(html.nbx-on.nbx-tema-mork) #header_toolbar #icons {
+  position: absolute;
+  right: 5px;
+  bottom: 3px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* links & text */
+:where(html.nbx-on.nbx-tema-mork) #header_toolbar * {
+  color: var(--text);
+}
+:where(html.nbx-on.nbx-tema-mork) #header_toolbar a {
+  color: var(--text-muted);
+  text-decoration: none;
+}
+:where(html.nbx-on.nbx-tema-mork) #header_toolbar a:hover {
+  color: var(--text-bright);
+}
+
+/* icon anchors */
+:where(html.nbx-on.nbx-tema-mork) #header_toolbar #icons a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+:where(html.nbx-on.nbx-tema-mork) #header_toolbar #icons a:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text-bright);
+}
+
+:where(html.nbx-on.nbx-tema-mork) #header_toolbar #icons a img {
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
+  opacity: 0.6;
+  transition: opacity 0.15s;
+}
+
+:where(html.nbx-on.nbx-tema-mork) #header_toolbar #icons a:hover img {
+  opacity: 1;
+}
+
+/* ── Nav menu ───────────────────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) #menu {
+  width: 100%;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background-color: var(--bg-panel);
+  height: 32px;
+}
+:where(html.nbx-on.nbx-tema-mork) #menu ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  /*   display: flex; */
+  height: 100%;
+}
+:where(html.nbx-on.nbx-tema-mork) #menu ul li {
+  flex: 1;
+  text-align: center;
+  white-space: nowrap;
+  position: relative;
+  transition: background-color 0.12s;
+}
+:where(html.nbx-on.nbx-tema-mork) #menu ul li::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transition: transform 0.15s ease;
+}
+:where(html.nbx-on.nbx-tema-mork) #menu ul li:hover::after {
+  transform: scaleX(1);
+}
+:where(html.nbx-on.nbx-tema-mork) #menu ul li:hover {
+  background-color: var(--bg-hover);
+}
+:where(html.nbx-on.nbx-tema-mork) #menu ul li a {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  transition: color 0.12s;
+}
+:where(html.nbx-on.nbx-tema-mork) #menu ul li a:hover {
+  color: var(--text-bright);
+}
+
+/* ── Sidebar ─────────────────────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) #sidebar {
+  width: 158px;
+  float: left;
+  margin-top: 16px;
+  margin-left: 10px;
+}
+:where(html.nbx-on.nbx-tema-mork) #sidebar ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+:where(html.nbx-on.nbx-tema-mork) #sidebar ul li {
+  list-style: none;
+}
+:where(html.nbx-on.nbx-tema-mork) #sidebar a {
+  color: var(--text-muted);
+  text-decoration: none;
+}
+:where(html.nbx-on.nbx-tema-mork) #sidebar a:hover {
+  color: var(--text-bright);
+}
+:where(html.nbx-on.nbx-tema-mork) #sidebar ul li.top {
+  margin-bottom: 12px;
+}
+
+:where(html.nbx-on.nbx-tema-mork) #sidebar ul li.title {
+  background: linear-gradient(90deg, var(--accent-dim) 0%, #2a3060 100%);
+  border: 1px solid var(--border-bright);
+  border-bottom: none;
+  height: 28px;
+  font-weight: 600;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-bright);
+  padding: 7px 0 0 10px;
+}
+:where(html.nbx-on.nbx-tema-mork) #sidebar ul li.title a {
+  color: var(--text-bright);
+}
+
+:where(html.nbx-on.nbx-tema-mork) #sidebar ul li.item,
+:where(html.nbx-on.nbx-tema-mork) #sidebar ul li.text {
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  background-color: var(--bg-panel);
+  list-style: none;
+}
+:where(html.nbx-on.nbx-tema-mork) #sidebar ul li.item a {
+  display: block;
+  padding: 5px 8px 5px 12px;
+  color: var(--text-muted);
+  font-size: 11px;
+  border-left: 2px solid transparent;
+  transition:
+    background-color 0.1s,
+    color 0.1s,
+    padding-left 0.1s,
+    border-color 0.1s;
+}
+:where(html.nbx-on.nbx-tema-mork) #sidebar ul li.item a:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-bright);
+  padding-left: 14px;
+  border-left-color: var(--accent);
+}
+:where(html.nbx-on.nbx-tema-mork) #sidebar ul li.text {
+  padding: 8px 8px 6px 12px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+:where(html.nbx-on.nbx-tema-mork) #sidebar ul li.item.spacer {
+  background-color: var(--bg-panel);
+  height: 6px;
+}
+:where(html.nbx-on.nbx-tema-mork) #sidebar ul li.spacer {
+  background: none;
+  height: 16px;
+}
+:where(html.nbx-on.nbx-tema-mork) #sidebar ul li.spacer span {
+  border: 1px solid var(--border);
+  border-top: none;
+  height: 0;
+  display: block;
+  margin-bottom: 8px;
+}
+
+:where(html.nbx-on.nbx-tema-mork) #sidebar input[type="text"] {
+  width: 134px;
+}
+:where(html.nbx-on.nbx-tema-mork) #sidebar input[type="submit"] {
+  border: 1px solid var(--border);
+  background-color: var(--bg-panel);
+  display: none;
+}
+
+/* ── Content / Footer ───────────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) #content {
+  margin: 8px 0 8px 178px;
+  width: auto;
+  text-align: center;
+}
+
+:where(html.nbx-on.nbx-tema-mork) #content .small {
+  padding: 0 10px;
+}
+
+/*Hide the first pager if there are more than 1*/
+:where(html.nbx-on.nbx-tema-mork) #content > .pager:has(~ .pager),
+:where(html.nbx-on.nbx-tema-mork) .normal > .pager:has(~ .pager) {
+  display: none;
+}
+:where(html.nbx-on.nbx-tema-mork) #footer {
+  text-align: center;
+  margin: 20px 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 11px;
+}
+
+/* ── Utility ─────────────────────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) .center {
+  margin: 0 auto;
+  text-align: center;
+}
+:where(html.nbx-on.nbx-tema-mork) .clear {
+  clear: both;
+}
+:where(html.nbx-on.nbx-tema-mork) .italic {
+  font-style: italic;
+}
+:where(html.nbx-on.nbx-tema-mork) .ratio_txt,
+:where(html.nbx-on.nbx-tema-mork) .up_txt,
+:where(html.nbx-on.nbx-tema-mork) .down_txt,
+:where(html.nbx-on.nbx-tema-mork) .act_txt {
+  color: var(--text-bright) !important;
+}
+
+/* ── h1 ──────────────────────────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) h1 {
+  background: linear-gradient(
+    90deg,
+    var(--bg-panel-alt) 0%,
+    var(--bg-panel) 100%
+  );
+  border: 1px solid var(--border);
+  border-bottom: none;
+  color: var(--text-bright);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-align: left;
+  padding: 6px 10px;
+  margin: 6px 0 0;
+}
+
+/* ── Messages ────────────────────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) #messages_ok {
+  background-color: rgba(62, 207, 106, 0.12);
+  color: var(--accent-green);
+  display: inline-block;
+  padding: 8px 14px;
+  margin: 5px;
+  font-weight: 700;
+  border: 1px solid rgba(62, 207, 106, 0.25);
+  border-radius: var(--radius);
+}
+:where(html.nbx-on.nbx-tema-mork) #messages {
+  background-color: rgba(255, 78, 78, 0.12);
+  color: var(--accent-red);
+  display: inline-block;
+  padding: 8px 14px;
+  margin: 5px;
+  font-weight: 700;
+  border: 1px solid rgba(255, 78, 78, 0.25);
+  border-radius: var(--radius);
+}
+:where(html.nbx-on.nbx-tema-mork) #messages a {
+  color: var(--accent-red);
+}
+:where(html.nbx-on.nbx-tema-mork) div.staffmess {
+  background-color: rgba(245, 197, 66, 0.1);
+  color: var(--accent-yellow);
+  display: inline-block;
+  padding: 8px 14px;
+  margin: 5px;
+  font-weight: 700;
+  border: 1px solid rgba(245, 197, 66, 0.25);
+  border-radius: var(--radius);
+  /* max-width: 1000px; */
+  text-align: center;
+}
+
+/* ── Content boxes ───────────────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) .contentbox {
+  background-color: var(--bg-panel);
+  border: 1px solid var(--border);
+  text-align: left;
+  padding: 8px 10px 12px;
+}
+:where(html.nbx-on.nbx-tema-mork) .contentbox a:hover {
+  color: var(--accent-red);
+}
+:where(html.nbx-on.nbx-tema-mork) .smallmessagebox {
+  display: inline-block;
+  background-color: var(--bg-panel-alt);
+  padding: 14px;
+  border: 1px solid var(--border);
+  margin: 0 auto;
+  border-radius: var(--radius);
+}
+:where(html.nbx-on.nbx-tema-mork) .smallmessagebox h1 {
+  background: none;
+  border: none;
+  text-align: center;
+}
+
+/* ── Normal / small wrappers ─────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) div.normal,
+:where(html.nbx-on.nbx-tema-mork) h1.normal {
+  margin: 0 auto;
+}
+:where(html.nbx-on.nbx-tema-mork) div.normal {
+  margin-bottom: 6px;
+}
+:where(html.nbx-on.nbx-tema-mork) .normal p {
+  padding: 5px;
+  margin: 0 0 10px;
+}
+:where(html.nbx-on.nbx-tema-mork) .normal li {
+  padding: 3px;
+}
+:where(html.nbx-on.nbx-tema-mork) div.small,
+:where(html.nbx-on.nbx-tema-mork) h1.small {
+  max-width: 750px;
+  margin: 0 auto;
+}
+:where(html.nbx-on.nbx-tema-mork) div.small {
+  margin-bottom: 6px;
+}
+:where(html.nbx-on.nbx-tema-mork) ul.toc > li {
+  font-weight: 700;
+  padding: 5px;
+}
+:where(html.nbx-on.nbx-tema-mork) ul.toc ul li {
+  padding: 3px;
+}
+:where(html.nbx-on.nbx-tema-mork) .headline.small {
+  font-weight: 700;
+  padding: 5px;
+}
+:where(html.nbx-on.nbx-tema-mork) .headline.small .pg {
+  margin-right: 15px;
+}
+:where(html.nbx-on.nbx-tema-mork) span.content {
+  margin-left: 50px;
+}
+:where(html.nbx-on.nbx-tema-mork) span.content ul li {
+  padding: 3px;
+}
+
+/* ── Tables: shared header ───────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) table td a:hover,
+:where(html.nbx-on.nbx-tema-mork) p a:hover {
+  color: var(--text-link-hover);
+}
+
+:where(html.nbx-on.nbx-tema-mork) table.listTable {
+  width: 100%;
+}
+
+:where(html.nbx-on.nbx-tema-mork) table.stats th,
+:where(html.nbx-on.nbx-tema-mork) table.supportinfo th,
+:where(html.nbx-on.nbx-tema-mork) table.listTable tr th,
+:where(html.nbx-on.nbx-tema-mork) table.forumTable tr th,
+:where(html.nbx-on.nbx-tema-mork) table.torrentTable th {
+  background: linear-gradient(
+    180deg,
+    var(--bg-panel-alt) 0%,
+    var(--bg-panel) 100%
+  );
+  color: var(--text-bright);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  padding: 6px 8px;
+}
+
+/* stats */
+:where(html.nbx-on.nbx-tema-mork) table.stats {
+  background-color: var(--bg-panel);
+  border: 1px solid var(--border);
+}
+:where(html.nbx-on.nbx-tema-mork) table.stats th {
+  text-align: right;
+  border-top: 1px solid var(--border);
+}
+:where(html.nbx-on.nbx-tema-mork) table.stats tr.left th {
+  text-align: left;
+  border-top: none;
+  border-left: 1px solid var(--border);
+}
+:where(html.nbx-on.nbx-tema-mork) table.stats td {
+  border-left: 1px solid var(--border);
+  border-top: 1px solid var(--border);
+  padding: 5px 8px;
+}
+
+/* supportinfo */
+:where(html.nbx-on.nbx-tema-mork) table.supportinfo {
+  background-color: var(--bg-panel);
+  border-left: 1px solid var(--border);
+  border-top: 1px solid var(--border);
+}
+:where(html.nbx-on.nbx-tema-mork) table.supportinfo th {
+  text-align: right;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+:where(html.nbx-on.nbx-tema-mork) table.supportinfo td {
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 5px 8px;
+  width: 20%;
+  white-space: nowrap;
+}
+
+/* row striping */
+:where(html.nbx-on.nbx-tema-mork) table.stats tbody tr:nth-child(even) td,
+:where(html.nbx-on.nbx-tema-mork) table.supportinfo tbody tr:nth-child(even) td,
+:where(html.nbx-on.nbx-tema-mork) table.listTable tbody tr:nth-child(even) td {
+  background-color: var(--bg-panel-alt);
+}
+
+/* listTable */
+:where(html.nbx-on.nbx-tema-mork) table.listTable {
+  border: 1px solid var(--border);
+  border-left: none;
+  border-bottom: none;
+  background-color: var(--bg-panel);
+}
+:where(html.nbx-on.nbx-tema-mork) table.listTable tr td,
+:where(html.nbx-on.nbx-tema-mork) table.listTable tr th {
+  border-bottom: 1px solid var(--border);
+  border-left: 1px solid var(--border);
+  padding: 5px 8px;
+  text-align: left;
+}
+:where(html.nbx-on.nbx-tema-mork) table.listTable td.nameCol {
+  white-space: nowrap;
+}
+
+/* forumTable */
+:where(html.nbx-on.nbx-tema-mork) table.forumTable {
+  border: none;
+  margin: 10px auto;
+}
+:where(html.nbx-on.nbx-tema-mork) table.forumTable th,
+:where(html.nbx-on.nbx-tema-mork) table.forumTable td {
+  border: 1px solid var(--border);
+}
+:where(html.nbx-on.nbx-tema-mork) table.forumTable tr th {
+  white-space: nowrap;
+}
+:where(html.nbx-on.nbx-tema-mork) table.forumTable td.forumspacer {
+  background-color: var(--bg-container);
+  border: none;
+}
+:where(html.nbx-on.nbx-tema-mork) table.forumTable tr td {
+  white-space: nowrap;
+  text-align: right;
+  padding: 5px 8px;
+}
+:where(html.nbx-on.nbx-tema-mork) table.forumTable tr td:first-child,
+:where(html.nbx-on.nbx-tema-mork) table.forumTable tr td:last-child {
+  text-align: left;
+}
+:where(html.nbx-on.nbx-tema-mork) table.forumTable td a {
+  font-weight: 700;
+  display: inline-block;
+}
+:where(html.nbx-on.nbx-tema-mork) table.forumTable tr td:first-child a img:first-child {
+  vertical-align: middle;
+  width: 25px;
+  margin-right: 5px;
+}
+:where(html.nbx-on.nbx-tema-mork) table.forumTable tr td:first-child > img:first-child {
+  float: left;
+  margin-right: 8px;
+}
+
+/* torrentTable */
+:where(html.nbx-on.nbx-tema-mork) table.torrentTable td a {
+  font-weight: 700;
+}
+:where(html.nbx-on.nbx-tema-mork) table.torrentTable th,
+:where(html.nbx-on.nbx-tema-mork) table.torrentTable td {
+  text-align: center !important;
+  white-space: nowrap;
+  padding: 5px 8px;
+}
+:where(html.nbx-on.nbx-tema-mork) table.torrentTable tr.owner {
+  background-color: var(--bg-hover);
+}
+:where(html.nbx-on.nbx-tema-mork) table.torrentTable tbody tr:hover td {
+  background-color: var(--bg-active);
+  transition: background-color 0.1s;
+}
+
+/* ── Progress bar ────────────────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) .progressbar {
+  width: 100%;
+  background-color: var(--bg-hover);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  overflow: hidden;
+  height: 8px;
+}
+:where(html.nbx-on.nbx-tema-mork) .progressbar div.bar_green {
+  background: linear-gradient(90deg, #2da84e, #3ecf6a);
+  height: 100%;
+  border-radius: 20px;
+}
+:where(html.nbx-on.nbx-tema-mork) .progressbar div.bar_yellow {
+  background: linear-gradient(90deg, #c4a020, #f5c542);
+  height: 100%;
+  border-radius: 20px;
+}
+:where(html.nbx-on.nbx-tema-mork) .progressbar div.bar_red {
+  background: linear-gradient(90deg, #c42020, #ff4e4e);
+  height: 100%;
+  border-radius: 20px;
+}
+
+/* ── Forum ───────────────────────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) div.bottomForumLinks {
+  margin: 10px;
+  font-weight: 700;
+}
+:where(html.nbx-on.nbx-tema-mork) div.forumfoot img {
+  vertical-align: middle;
+}
+:where(html.nbx-on.nbx-tema-mork) div.forumfoot span {
+  padding: 10px;
+  display: inline-block;
+}
+
+/* ── vtable ──────────────────────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) table.vtable {
+  margin: 0 auto;
+  background-color: var(--bg-panel);
+  border-left: 1px solid var(--border);
+  border-top: 1px solid var(--border);
+}
+:where(html.nbx-on.nbx-tema-mork) table.vtable > tbody > tr > th,
+:where(html.nbx-on.nbx-tema-mork) table.vtable > tbody > tr > td {
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+:where(html.nbx-on.nbx-tema-mork) table.vtable td {
+  text-align: left;
+  padding: 5px 8px;
+}
+:where(html.nbx-on.nbx-tema-mork) table.vtable td table td.embedded {
+  border: 0;
+  padding: 0;
+}
+:where(html.nbx-on.nbx-tema-mork) table.vtable table td {
+  background-color: var(--bg-panel-alt);
+}
+:where(html.nbx-on.nbx-tema-mork) .embedded input {
+  font-family: var(--font);
+  font-size: var(--font-size);
+}
+/* ── vtable base ── */
+:where(html.nbx-on.nbx-tema-mork) table.vtable {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 13px;
+}
+
+:where(html.nbx-on.nbx-tema-mork) table.vtable th,
+:where(html.nbx-on.nbx-tema-mork) table.vtable td {
+  padding: 10px 14px;
+  border-bottom: 0.5px solid rgba(255, 255, 255, 0.07);
+  vertical-align: middle;
+  text-align: left;
+}
+
+:where(html.nbx-on.nbx-tema-mork) table.vtable th {
+  width: 180px;
+  font-weight: 500;
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+:where(html.nbx-on.nbx-tema-mork) table.vtable tr:last-child th,
+:where(html.nbx-on.nbx-tema-mork) table.vtable tr:last-child td {
+  border-bottom: none;
+}
+
+:where(html.nbx-on.nbx-tema-mork) table.vtable tr:hover td,
+:where(html.nbx-on.nbx-tema-mork) table.vtable tr:hover th {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* ── inputs ── */
+:where(html.nbx-on.nbx-tema-mork) table.vtable input[type="text"],
+:where(html.nbx-on.nbx-tema-mork) table.vtable input[type="password"],
+:where(html.nbx-on.nbx-tema-mork) table.vtable input[type="email"],
+:where(html.nbx-on.nbx-tema-mork) table.vtable textarea,
+:where(html.nbx-on.nbx-tema-mork) table.vtable select {
+  background: rgba(255, 255, 255, 0.05);
+  border: 0.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 13px;
+  font-family: inherit;
+  padding: 6px 10px;
+  outline: none;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+  box-sizing: border-box;
+}
+
+:where(html.nbx-on.nbx-tema-mork) table.vtable input[type="text"],
+:where(html.nbx-on.nbx-tema-mork) table.vtable input[type="password"],
+:where(html.nbx-on.nbx-tema-mork) table.vtable input[type="email"] {
+  height: 32px;
+}
+
+:where(html.nbx-on.nbx-tema-mork) table.vtable select {
+  height: 32px;
+  padding-right: 28px;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238a9ab0' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 9px center;
+  cursor: pointer;
+}
+
+:where(html.nbx-on.nbx-tema-mork) table.vtable textarea {
+  resize: vertical;
+  line-height: 1.5;
+  min-height: 60px;
+}
+
+:where(html.nbx-on.nbx-tema-mork) table.vtable input[type="text"]:focus,
+:where(html.nbx-on.nbx-tema-mork) table.vtable input[type="password"]:focus,
+:where(html.nbx-on.nbx-tema-mork) table.vtable input[type="email"]:focus,
+:where(html.nbx-on.nbx-tema-mork) table.vtable textarea:focus,
+:where(html.nbx-on.nbx-tema-mork) table.vtable select:focus {
+  border-color: rgba(99, 140, 210, 0.6);
+  background: rgba(99, 140, 210, 0.06);
+}
+
+/* ── radio & checkbox ── */
+:where(html.nbx-on.nbx-tema-mork) table.vtable input[type="radio"],
+:where(html.nbx-on.nbx-tema-mork) table.vtable input[type="checkbox"] {
+  accent-color: #5b8de8;
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+
+/* ── helper text (spans after inputs) ── */
+:where(html.nbx-on.nbx-tema-mork) table.vtable td > span {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* ── buttons ── */
+:where(html.nbx-on.nbx-tema-mork) table.vtable input[type="button"],
+:where(html.nbx-on.nbx-tema-mork) table.vtable input[type="submit"] {
+  height: 30px;
+  padding: 0 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 0.5px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+
+:where(html.nbx-on.nbx-tema-mork) table.vtable input[type="button"]:hover,
+:where(html.nbx-on.nbx-tema-mork) table.vtable input[type="submit"]:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+/* ── multi-select (cats_sel) ── */
+:where(html.nbx-on.nbx-tema-mork) table.vtable select[multiple] {
+  height: auto;
+  padding: 4px 6px;
+  background-image: none;
+  appearance: auto;
+  -webkit-appearance: auto;
+}
+
+/* ── Search ──────────────────────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) .searchhed {
+  background: linear-gradient(90deg, var(--accent-dim), var(--bg-panel-alt));
+  color: var(--text-bright);
+  padding: 5px 10px;
+  font-weight: 600;
+  font-size: 11px;
+}
+:where(html.nbx-on.nbx-tema-mork) .searchbox {
+  padding: 4px;
+  /* width: 870px; */
+  margin: 0 auto;
+  font-weight: 600;
+}
+:where(html.nbx-on.nbx-tema-mork) .searchbox .cat_cbox {
+  font-weight: 400;
+  width: 90px;
+  display: inline-block;
+  white-space: nowrap;
+  text-align: left;
+}
+:where(html.nbx-on.nbx-tema-mork) .advanced .adva_boxes {
+  overflow: hidden;
+  width: 630px;
+  margin: 0 auto;
+  text-align: left;
+}
+:where(html.nbx-on.nbx-tema-mork) .advanced .adva_box {
+  width: 125px;
+  float: left;
+  font-weight: 400;
+}
+:where(html.nbx-on.nbx-tema-mork) .advanced .adva_box select,
+:where(html.nbx-on.nbx-tema-mork) .advanced .adva_box input {
+  width: 100px;
+}
+:where(html.nbx-on.nbx-tema-mork) .advanced .ir select,
+:where(html.nbx-on.nbx-tema-mork) .advanced .ir input,
+:where(html.nbx-on.nbx-tema-mork) .advanced .fl input {
+  width: 44px;
+}
+:where(html.nbx-on.nbx-tema-mork) .advanced .fl {
+  width: 210px;
+  text-align: center;
+}
+:where(html.nbx-on.nbx-tema-mork) .advanced .fl .adva_box {
+  width: 70px;
+}
+:where(html.nbx-on.nbx-tema-mork) .searchstr {
+  text-align: center;
+  font-weight: 400;
+}
+:where(html.nbx-on.nbx-tema-mork) a.index {
+  text-decoration: none;
+}
+
+/* ── Details ─────────────────────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) .details {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+:where(html.nbx-on.nbx-tema-mork) table.details > tbody > tr > td {
+  padding: 5px 8px;
+}
+:where(html.nbx-on.nbx-tema-mork) table.details > tbody > tr > th {
+  width: 100px;
+  text-align: right;
+  padding: 5px 8px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+:where(html.nbx-on.nbx-tema-mork) table.details > tbody > tr > th > a {
+  font-size: 10px;
+  font-style: italic;
+  font-weight: 400;
+}
+
+/* ── Genre tags ──────────────────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) span.genre {
+  background-color: var(--bg-hover);
+  border: 1px solid var(--border-bright);
+  color: var(--text);
+  display: block;
+  float: left;
+  height: 20px;
+  margin-right: 6px;
+  padding: 2px 7px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 500;
+  transition:
+    background-color 0.1s,
+    border-color 0.1s;
+}
+:where(html.nbx-on.nbx-tema-mork) span.genre:hover {
+  background-color: var(--accent-dim);
+  border-color: var(--accent);
+  color: var(--text-bright);
+}
+:where(html.nbx-on.nbx-tema-mork) span.genre a {
+  color: var(--text);
+  margin-right: 2px;
+  text-decoration: none;
+}
+
+/* ── Spinner ─────────────────────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) #spin {
+  display: none;
+  width: 300px;
+  height: 300px;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* ── Quick reply ─────────────────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) .quickreply {
+  padding: 0 10px;
+  width: 600px;
+  margin: 0 auto;
+  text-align: center;
+}
+:where(html.nbx-on.nbx-tema-mork) .quickreply textarea {
+  width: 525px;
+  height: 148px;
+  border: 1px solid var(--border);
+  border-top: none;
+}
+:where(html.nbx-on.nbx-tema-mork) .quickreply div.left {
+  padding: 10px;
+  float: left;
+  height: 148px;
+  width: 53px;
+  font-weight: 700;
+  background-color: var(--bg-panel);
+  border-left: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+:where(html.nbx-on.nbx-tema-mork) h1.quickreply {
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-bright);
+  background: var(--bg-panel);
+  border: 0.5px solid var(--border);
+  border-radius: 8px;
+  padding: 11px 16px;
+  user-select: none;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+:where(html.nbx-on.nbx-tema-mork) h1.quickreply:hover {
+  border-color: rgba(91, 106, 240, 0.45);
+  background: rgba(91, 106, 240, 0.06);
+  color: #fff;
+}
+
+/* Chevron arrow on the right */
+:where(html.nbx-on.nbx-tema-mork) h1.quickreply::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-right: 1.5px solid var(--text-muted);
+  border-bottom: 1.5px solid var(--text-muted);
+  transform: rotate(45deg);
+  transition:
+    transform 0.2s,
+    border-color 0.15s;
+  flex-shrink: 0;
+  margin-bottom: 2px;
+}
+:where(html.nbx-on.nbx-tema-mork) h1.quickreply:hover::after {
+  border-color: var(--accent);
+}
+
+/* Small comment box icon on the left */
+:where(html.nbx-on.nbx-tema-mork) h1.quickreply::before {
+  content: "";
+  width: 14px;
+  height: 11px;
+  border: 1.5px solid var(--text-muted);
+  border-radius: 2px;
+  flex-shrink: 0;
+  transition: border-color 0.15s;
+}
+:where(html.nbx-on.nbx-tema-mork) h1.quickreply:hover::before {
+  border-color: var(--accent);
+}
+
+/* When open — square off the bottom corners so it connects to the box */
+:where(html.nbx-on.nbx-tema-mork) h1.quickreply.open {
+  border-radius: 8px 8px 0 0;
+  border-bottom-color: transparent;
+}
+
+/* Contentbox attaches flush below */
+:where(html.nbx-on.nbx-tema-mork) .contentbox.quickreply {
+  border: 0.5px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  margin-top: -1px;
+  padding: 1rem 1.25rem;
+}
+:where(html.nbx-on.nbx-tema-mork) a.showquickreply {
+  text-decoration: none;
+}
+:where(html.nbx-on.nbx-tema-mork) .qickbox {
+  border-top: none;
+}
+
+/* ── Comments ────────────────────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) .comments {
+  padding: 10px;
+  width: 800px;
+  margin: 0 auto;
+  border-top: 1px solid var(--border);
+}
+:where(html.nbx-on.nbx-tema-mork) .forumposts {
+  width: 100%;
+  max-width: 1200px;
+}
+:where(html.nbx-on.nbx-tema-mork) div.comment {
+  padding: 10px;
+  margin-left: 150px;
+  background-color: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+}
+:where(html.nbx-on.nbx-tema-mork) div.unread .comment {
+  background-color: var(--bg-panel-alt);
+}
+:where(html.nbx-on.nbx-tema-mork) h1.comment {
+  border: none;
+  font-weight: 400;
+  float: none;
+  background-color: var(--bg-panel-alt);
+  padding: 5px 10px;
+  white-space: nowrap;
+  font-size: 12px;
+}
+:where(html.nbx-on.nbx-tema-mork) h1.comment a {
+  font-weight: 700;
+}
+:where(html.nbx-on.nbx-tema-mork) h1.comment span.inner {
+  font-weight: 700;
+}
+:where(html.nbx-on.nbx-tema-mork) div.avatar {
+  float: left;
+  width: 150px;
+  background-color: var(--bg-panel-alt);
+  border-right: 1px solid var(--border);
+}
+:where(html.nbx-on.nbx-tema-mork) .avatar img.avatar {
+  width: 100%;
+  display: block;
+}
+:where(html.nbx-on.nbx-tema-mork) .avatar img.flagpath {
+  width: 32px;
+}
+:where(html.nbx-on.nbx-tema-mork) .avatar div.stats {
+  padding: 8px 0 5px 5px;
+}
+:where(html.nbx-on.nbx-tema-mork) .wrapcomment {
+  border-top: 1px solid var(--border);
+  overflow: hidden;
+  overflow-wrap: break-word;
+  background-color: var(--bg-panel);
+  width: 100%;
+}
+:where(html.nbx-on.nbx-tema-mork) .comments h3 {
+  margin: 10px 0 0;
+}
+:where(html.nbx-on.nbx-tema-mork) p.codesub,
+:where(html.nbx-on.nbx-tema-mork) p.sub {
+  margin-bottom: 4px;
+}
+
+/* ── Add comment ─────────────────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) .addcomment {
+  margin: 0 auto;
+  border-top: 1px solid var(--border);
+  display: inline-block;
+  position: relative;
+}
+:where(html.nbx-on.nbx-tema-mork) .addcomment div.right {
+  width: 750px;
+  float: right;
+  padding: 0;
+}
+:where(html.nbx-on.nbx-tema-mork) .addcomment div.left {
+  float: left;
+  height: 200px;
+  width: 50px;
+  background-color: var(--bg-panel);
+}
+:where(html.nbx-on.nbx-tema-mork) .addcomment .buttons {
+  bottom: 5px;
+  position: absolute;
+  text-align: center;
+  width: 585px;
+}
+
+:where(html.nbx-on.nbx-tema-mork) input[type="submit"],
+:where(html.nbx-on.nbx-tema-mork) input[type="submit"].submit {
+  background: linear-gradient(180deg, var(--accent) 0%, var(--accent-dim) 100%);
+}
+
+:where(html.nbx-on.nbx-tema-mork) input[type="submit"],
+:where(html.nbx-on.nbx-tema-mork) input[type="reset"] {
+  padding: 5px 14px;
+  /*   margin: 10px auto; */
+  color: var(--text-bright);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.1s;
+  height: unset !important;
+}
+
+:where(html.nbx-on.nbx-tema-mork) input[type="submit"]:hover {
+  opacity: 0.85;
+}
+
+:where(html.nbx-on.nbx-tema-mork) form[action="takeprofedit.php"] > div:last-child {
+  display: flex;
+  gap: 10px;
+  padding: 2px 8px;
+  flex-direction: row-reverse;
+  max-width: 400px;
+}
+/* ── User details ────────────────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) div.udwrap {
+  width: 970px;
+  margin: 0 auto 20px;
+  text-align: justify;
+  display: flow-root;
+}
+:where(html.nbx-on.nbx-tema-mork) table.userdetails th {
+  width: 215px;
+}
+:where(html.nbx-on.nbx-tema-mork) table#modtask th {
+  text-align: right;
+  vertical-align: top;
+}
+
+/* ── Pagination ──────────────────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) .pagelist {
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+:where(html.nbx-on.nbx-tema-mork) .pagelist span {
+  color: var(--text-dim);
+  font-weight: 700;
+  text-decoration: underline;
+}
+:where(html.nbx-on.nbx-tema-mork) div.forumnavi {
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+:where(html.nbx-on.nbx-tema-mork) .pagination {
+  float: left;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+:where(html.nbx-on.nbx-tema-mork) .pagination a {
+  display: block;
+  float: left;
+  height: 24px;
+  width: 24px;
+  color: var(--text-muted);
+  text-align: center;
+  line-height: 24px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 13px;
+  outline: none;
+  background-color: var(--bg-panel);
+  border-right: 1px solid var(--border);
+  transition:
+    background-color 0.1s,
+    color 0.1s;
+}
+:where(html.nbx-on.nbx-tema-mork) .pagination a:hover,
+:where(html.nbx-on.nbx-tema-mork) .pagination a:focus,
+:where(html.nbx-on.nbx-tema-mork) .pagination a:active {
+  background-color: var(--bg-hover);
+  color: var(--text-bright);
+}
+:where(html.nbx-on.nbx-tema-mork) .pagination a.disabled {
+  color: var(--text-dim);
+  cursor: default;
+}
+:where(html.nbx-on.nbx-tema-mork) .pagination a:first-child {
+  border-left: none;
+}
+:where(html.nbx-on.nbx-tema-mork) .pagination a:last-child {
+  border-right: none;
+}
+:where(html.nbx-on.nbx-tema-mork) .pagination input {
+  border: none;
+  border-right: 1px solid var(--border);
+  float: left;
+  text-align: center;
+  height: 24px;
+  outline: none;
+  width: 120px;
+  background: var(--bg-input);
+  color: var(--text);
+  font-size: 11px;
+  padding: 0;
+  margin: 0;
+}
+
+:where(html.nbx-on.nbx-tema-mork) div.wrapPager {
+  display: inline-block;
+  margin: 10px 0;
+  text-align: center;
+  width: 202px;
+}
+:where(html.nbx-on.nbx-tema-mork) div.pager {
+  margin: 12px 0;
+  line-height: 1;
+  font-size: 0; /* kills whitespace and | text nodes */
+}
+
+/* Restore font size for all real content */
+:where(html.nbx-on.nbx-tema-mork) div.pager strong,
+:where(html.nbx-on.nbx-tema-mork) div.pager strong a,
+:where(html.nbx-on.nbx-tema-mork) div.pager strong span {
+  font-size: 13px;
+}
+
+/* Page number pills */
+:where(html.nbx-on.nbx-tema-mork) div.pager strong {
+  display: inline-flex;
+  font-weight: normal;
+  margin: 0 2px 4px;
+}
+:where(html.nbx-on.nbx-tema-mork) div.pager strong a,
+:where(html.nbx-on.nbx-tema-mork) div.pager strong span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 6px;
+  border-radius: 6px;
+  border: 0.5px solid var(--border);
+  background: var(--bg-panel);
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 500;
+  transition:
+    border-color 0.12s,
+    background 0.12s,
+    color 0.12s;
+}
+:where(html.nbx-on.nbx-tema-mork) div.pager strong a:hover {
+  border-color: rgba(91, 106, 240, 0.45);
+  background: rgba(91, 106, 240, 0.1);
+  color: var(--text-bright);
+}
+
+/* Current page (wrapped in span, not a) */
+:where(html.nbx-on.nbx-tema-mork) div.pager strong span {
+  border-color: var(--accent);
+  background: rgba(91, 106, 240, 0.15);
+  color: var(--text-bright);
+  cursor: default;
+}
+
+/* Prev / Next */
+:where(html.nbx-on.nbx-tema-mork) div.pager strong.prev,
+:where(html.nbx-on.nbx-tema-mork) div.pager strong.next {
+  margin: 0 4px;
+}
+:where(html.nbx-on.nbx-tema-mork) div.pager strong.prev a,
+:where(html.nbx-on.nbx-tema-mork) div.pager strong.prev span,
+:where(html.nbx-on.nbx-tema-mork) div.pager strong.next a {
+  min-width: unset;
+  padding: 0 12px;
+  color: var(--accent);
+  border-color: rgba(91, 106, 240, 0.3);
+  background: rgba(91, 106, 240, 0.06);
+  font-size: 12px;
+}
+:where(html.nbx-on.nbx-tema-mork) div.pager strong.prev span {
+  color: var(--text-muted);
+  border-color: var(--border);
+  background: transparent;
+  cursor: default;
+}
+:where(html.nbx-on.nbx-tema-mork) div.pager strong.next a:hover,
+:where(html.nbx-on.nbx-tema-mork) div.pager strong.prev a:hover {
+  background: rgba(91, 106, 240, 0.14);
+  border-color: rgba(91, 106, 240, 0.5);
+}
+
+/* Action links (Søk, Marker, Abonner...) — smaller and muted */
+:where(html.nbx-on.nbx-tema-mork) div.pager br ~ strong a {
+  min-width: unset;
+  height: 26px;
+  padding: 0 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+  border-color: transparent;
+  background: transparent;
+  font-weight: 400;
+}
+:where(html.nbx-on.nbx-tema-mork) div.pager br ~ strong a:hover {
+  color: var(--text-bright);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: transparent;
+}
+/* ── PM ──────────────────────────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) div#wrapoldpm {
+  margin: 5px;
+  margin-top: 0;
+  padding: 10px;
+  border: 1px solid var(--border);
+  text-align: left;
+  background: var(--bg-panel);
+}
+:where(html.nbx-on.nbx-tema-mork) div.pmwrap {
+  margin-bottom: 15px;
+  padding: 10px;
+}
+:where(html.nbx-on.nbx-tema-mork) p.pmtitle {
+  margin: 3px 3px 12px;
+}
+:where(html.nbx-on.nbx-tema-mork) div.pm {
+  padding: 10px;
+}
+
+/* ── Poll ────────────────────────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) table.poll tr > td:nth-child(2) > div {
+  background-color: var(--bg-panel);
+  border: 1px solid var(--border);
+}
+
+/* ── Mod tools ───────────────────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) .modtools li:first-child {
+  width: 140px;
+  margin-right: 8px;
+  text-align: right;
+  font-weight: 700;
+}
+:where(html.nbx-on.nbx-tema-mork) .modtools li {
+  display: inline-block;
+  vertical-align: top;
+  line-height: 21px;
+}
+:where(html.nbx-on.nbx-tema-mork) .modtools li input[type="text"] {
+  width: 315px;
+}
+:where(html.nbx-on.nbx-tema-mork) .modtools ul {
+  margin: 0;
+  padding: 1px;
+}
+:where(html.nbx-on.nbx-tema-mork) div.removed .contentbox,
+:where(html.nbx-on.nbx-tema-mork) h1.removed {
+  opacity: 0.45;
+}
+
+/* ── Checkbox list ───────────────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) div.cbList ul {
+  margin: 0;
+  padding: 0;
+}
+:where(html.nbx-on.nbx-tema-mork) div.cbList ul li {
+  float: left;
+  display: inline-block;
+  width: 110px;
+}
+:where(html.nbx-on.nbx-tema-mork) div.cbList {
+  display: inline-block;
+  width: 450px;
+}
+
+/* ── BBCodes ─────────────────────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) p.spoiler {
+  font-weight: 700;
+  margin: 0;
+  padding-bottom: 5px;
+}
+:where(html.nbx-on.nbx-tema-mork) div.spoiler {
+  display: none;
+  border: 1px dashed var(--border-bright);
+  padding: 10px;
+  border-radius: var(--radius-sm);
+}
+:where(html.nbx-on.nbx-tema-mork) p.codesub,
+:where(html.nbx-on.nbx-tema-mork) p.bb_quote {
+  font-weight: 700;
+}
+:where(html.nbx-on.nbx-tema-mork) div.codesub {
+  border: 1px solid var(--border-bright);
+  padding: 10px;
+  background-color: var(--bg-input);
+  overflow-wrap: break-word;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  border-radius: var(--radius-sm);
+}
+:where(html.nbx-on.nbx-tema-mork) div.bb_quote {
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  padding: 10px 10px 10px 14px;
+  background-color: var(--bg-panel-alt);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-style: italic;
+}
+
+/* ── Details panel ───────────────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) #details {
+  width: 960px;
+}
+:where(html.nbx-on.nbx-tema-mork) #details ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+:where(html.nbx-on.nbx-tema-mork) #details ul li {
+  list-style: none;
+  padding: 6px 10px 0;
+}
+:where(html.nbx-on.nbx-tema-mork) #details ul li a {
+  font-weight: 700;
+}
+:where(html.nbx-on.nbx-tema-mork) #details ul li.title {
+  font-weight: 600;
+  background: linear-gradient(
+    90deg,
+    var(--bg-panel-alt) 0%,
+    var(--bg-panel) 100%
+  );
+  border: 1px solid var(--border);
+  color: var(--text-bright);
+  height: 28px;
+  font-size: 11px;
+  letter-spacing: 0.03em;
+}
+:where(html.nbx-on.nbx-tema-mork) #details ul li.title a {
+  text-decoration: none;
+  color: var(--text-bright);
+}
+:where(html.nbx-on.nbx-tema-mork) #details ul li.title span {
+  float: left;
+}
+:where(html.nbx-on.nbx-tema-mork) #details ul li.item {
+  background-color: var(--bg-panel);
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  padding-bottom: 6px;
+  display: inline-block;
+  width: 100%;
+}
+:where(html.nbx-on.nbx-tema-mork) #details ul li.spacer {
+  background: transparent;
+  height: 16px;
+  padding: 0;
+  margin: 0;
+}
+:where(html.nbx-on.nbx-tema-mork) #details ul li.spacer span {
+  background-color: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  display: block;
+  height: 0;
+  margin-bottom: 8px;
+}
+
+/* ── UL table layout ─────────────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) div.ulTable {
+  float: left;
+  display: inline-block;
+}
+:where(html.nbx-on.nbx-tema-mork) div.ulTable ul li {
+  display: inline-block;
+  vertical-align: top;
+  width: 135px;
+  text-align: left;
+}
+:where(html.nbx-on.nbx-tema-mork) div.ulTable ul li:first-child {
+  font-weight: 700;
+  text-align: right;
+  width: 95px;
+  color: var(--text-muted);
+}
+:where(html.nbx-on.nbx-tema-mork) div.ulTable ul li.big {
+  width: 374px;
+}
+:where(html.nbx-on.nbx-tema-mork) div.ulTables {
+  float: left;
+}
+:where(html.nbx-on.nbx-tema-mork) div.ulTables #wide ul li {
+  width: 625px;
+}
+:where(html.nbx-on.nbx-tema-mork) div.ulTables #wide ul li:first-child {
+  width: 95px;
+}
+:where(html.nbx-on.nbx-tema-mork) .usHilight {
+  background-color: rgba(245, 197, 66, 0.15);
+  color: var(--accent-yellow);
+}
+
+/* ── BBCode editor ───────────────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) div.textbbcode .tagButtons {
+  margin-left: 5px;
+}
+:where(html.nbx-on.nbx-tema-mork) div.textbbcode .tagButtons input,
+:where(html.nbx-on.nbx-tema-mork) div.textbbcode .textarea textarea {
+  font-family: var(--font);
+  font-size: var(--font-size);
+}
+:where(html.nbx-on.nbx-tema-mork) div.textbbcode .textarea {
+  padding: 0;
+  margin: 5px 160px 5px 5px;
+  overflow-wrap: break-word;
+  display: inline-block;
+  vertical-align: top;
+}
+:where(html.nbx-on.nbx-tema-mork) div.textbbcode .textarea textarea {
+  width: 575px;
+  height: 215px;
+}
+:where(html.nbx-on.nbx-tema-mork) div.textbbcode .msgmal {
+  position: relative;
+  margin: 5px 0;
+}
+
+/* ── Smilies ─────────────────────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) .smilielist {
+  width: 160px;
+  text-align: center;
+  display: inline-block;
+  margin-left: -160px;
+  margin-top: 5px;
+  vertical-align: top;
+}
+:where(html.nbx-on.nbx-tema-mork) .smilielist ul {
+  list-style: none;
+  margin: 0 0 10px;
+  padding: 0;
+  display: inline-block;
+}
+:where(html.nbx-on.nbx-tema-mork) .smilielist ul li {
+  float: left;
+  width: 32px;
+  height: 30px;
+  text-align: center;
+}
+:where(html.nbx-on.nbx-tema-mork) .smilielist ul li a img {
+  vertical-align: middle;
+}
+:where(html.nbx-on.nbx-tema-mork) .fullsmilielist tr td {
+  text-align: center;
+}
+:where(html.nbx-on.nbx-tema-mork) .previewcomment {
+  margin-left: 0 !important;
+  min-width: 575px;
+  max-width: 830px;
+  overflow-wrap: break-word;
+}
+
+/* ── User list ───────────────────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) ul.userlist {
+  list-style: none;
+  display: inline-block;
+  margin: 0;
+  padding: 0;
+}
+:where(html.nbx-on.nbx-tema-mork) ul.userlist li {
+  float: left;
+  margin: 0;
+  padding: 0;
+  width: 80px;
+}
+:where(html.nbx-on.nbx-tema-mork) ul.userlist li:nth-child(even) {
+  width: 60px;
+}
+
+/* ── Modals ──────────────────────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) #supportmess {
+  width: 500px;
+  padding: 14px;
+  background-color: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+:where(html.nbx-on.nbx-tema-mork) .modal_box {
+  width: 410px;
+  padding: 14px;
+  background-color: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+/* ── Tablesorter ─────────────────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) table.tablesorter thead tr .header {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='21' height='9'%3E%3Cpath d='M12 4l3-4 3 4z' fill='%236f7486'/%3E%3Cpath d='M12 5l3 4 3-4z' fill='%236f7486'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center right;
+  cursor: pointer;
+  padding-right: 20px;
+}
+:where(html.nbx-on.nbx-tema-mork) table.tablesorter thead tr .headerSortUp {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='21' height='9'%3E%3Cpath d='M12 4l3-4 3 4z' fill='%23d8dce8'/%3E%3C/svg%3E");
+}
+:where(html.nbx-on.nbx-tema-mork) table.tablesorter thead tr .headerSortDown {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='21' height='9'%3E%3Cpath d='M12 5l3 4 3-4z' fill='%23d8dce8'/%3E%3C/svg%3E");
+}
+:where(html.nbx-on.nbx-tema-mork) div.tablesorterPager {
+  padding: 10px 0;
+  background-color: var(--bg-panel-alt);
+  text-align: center;
+  border: 1px solid var(--border);
+}
+:where(html.nbx-on.nbx-tema-mork) div.tablesorterPager span {
+  padding: 0 5px;
+}
+:where(html.nbx-on.nbx-tema-mork) div.tablesorterPager input.prev {
+  width: auto;
+  margin-right: 10px;
+}
+:where(html.nbx-on.nbx-tema-mork) div.tablesorterPager input.next {
+  width: auto;
+  margin-left: 10px;
+}
+:where(html.nbx-on.nbx-tema-mork) div.tablesorterPager input {
+  font-size: 10px;
+  width: 50px;
+  text-align: center;
+}
+
+/* ── Signature ───────────────────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) div.sig {
+  border-top: 1px dotted var(--border-bright);
+  margin: 10px 0 2px;
+  padding-top: 10px;
+}
+
+/* ── Horizontal menu ─────────────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) div.horizontalmenu {
+  text-align: center;
+  font-size: 14px;
+  margin-top: 25px;
+  min-height: 17px;
+}
+:where(html.nbx-on.nbx-tema-mork) div.horizontalmenu a {
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color 0.1s;
+}
+:where(html.nbx-on.nbx-tema-mork) div.horizontalmenu a:hover,
+:where(html.nbx-on.nbx-tema-mork) div.horizontalmenu a.this {
+  color: var(--text-bright);
+}
+
+/* ── Notification popup ──────────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) a#notification_popup {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 40px;
+  color: var(--text);
+  width: 300px;
+  height: 80px;
+  background-color: var(--bg-panel);
+  border: 1px solid var(--border-bright);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  z-index: 100;
+  background-repeat: no-repeat;
+  background-position: 5px center;
+  background-size: 70px 70px;
+  padding: 5px 5px 5px 75px;
+  text-decoration: none;
+}
+
+/* ── Notification list ───────────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) div#notificationList {
+  width: 350px;
+  position: absolute;
+  right: 20px;
+  top: 85px;
+  background-color: var(--bg-panel);
+  border: 1px solid var(--border-bright);
+  border-radius: var(--radius);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+  padding: 0;
+  margin: 0;
+  box-sizing: content-box;
+  display: none;
+}
+:where(html.nbx-on.nbx-tema-mork) div#notificationList * {
+  padding: 0;
+  margin: 0;
+  box-sizing: content-box;
+  color: var(--text);
+  position: static;
+}
+:where(html.nbx-on.nbx-tema-mork) div#notificationList span.topBar {
+  display: block;
+  height: 28px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(90deg, var(--accent-dim), var(--bg-panel-alt));
+}
+:where(html.nbx-on.nbx-tema-mork) div#notificationList span.topBar h3 {
+  float: left;
+  padding: 5px 0 0 8px;
+  font-size: 12px;
+  color: var(--text-bright);
+}
+:where(html.nbx-on.nbx-tema-mork) div#notificationList span.topBar span.right {
+  display: block;
+  float: right;
+  margin: 5px 8px 0 0;
+}
+:where(html.nbx-on.nbx-tema-mork) div#notificationList span.topBar span.right a {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+:where(html.nbx-on.nbx-tema-mork) div#notificationList ul {
+  list-style: none;
+  height: 300px;
+  overflow-y: scroll;
+}
+:where(html.nbx-on.nbx-tema-mork) div#notificationList ul li {
+  float: left;
+}
+:where(html.nbx-on.nbx-tema-mork) div#notificationList ul li a {
+  display: table-cell;
+  width: 305px;
+  height: 60px;
+  padding: 5px 5px 5px 65px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  text-decoration: none;
+  vertical-align: middle;
+  background-repeat: no-repeat;
+  background-position: 5px center;
+  background-size: 55px 55px;
+  font-size: 11px;
+  transition: background-color 0.1s;
+}
+:where(html.nbx-on.nbx-tema-mork) div#notificationList ul li.new a {
+  background-color: rgba(255, 78, 78, 0.1);
+  border-left: 2px solid var(--accent-red);
+}
+:where(html.nbx-on.nbx-tema-mork) div#notificationList ul li a:hover,
+:where(html.nbx-on.nbx-tema-mork) div#notificationList ul li a:hover b,
+:where(html.nbx-on.nbx-tema-mork) div#notificationList ul li a:hover span {
+  background-color: var(--bg-active);
+  color: var(--text-bright);
+}
+:where(html.nbx-on.nbx-tema-mork) div#notificationList a.bottomBar {
+  display: block;
+  height: 22px;
+  text-align: center;
+  color: var(--text-muted);
+  padding-top: 3px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+}
+
+/* ── Icon buttons ────────────────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) div#icons a.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  float: left;
+  margin-left: 6px;
+  position: relative;
+  font-size: 16px;
+  background-color: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-bright);
+  transition: background-color 0.15s;
+}
+:where(html.nbx-on.nbx-tema-mork) div#icons a.icon:hover {
+  background-color: rgba(255, 255, 255, 0.16);
+}
+:where(html.nbx-on.nbx-tema-mork) div#icons a.icon span {
+  position: absolute;
+  right: -6px;
+  top: -6px;
+  display: inline-block;
+  font-family: var(--font);
+  font-size: 9px;
+  font-weight: 700;
+  background-color: var(--accent-red);
+  color: #fff;
+  min-height: 13px;
+  padding: 1px 3px;
+  border-radius: 2px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+:where(html.nbx-on.nbx-tema-mork) div#icons a.icon span.grey {
+  background-color: #555a75;
+}
+:where(html.nbx-on.nbx-tema-mork) div#icons a.icon span.hidden {
+  display: none;
+}
+
+/* ── Top ten tables ──────────────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) table.myTable th {
+  width: 150px;
+}
+:where(html.nbx-on.nbx-tema-mork) table.toptentype1 tr > th {
+  width: 85px;
+}
+:where(html.nbx-on.nbx-tema-mork) table.toptentype2 tr > th:nth-child(1) {
+  width: 85px;
+}
+:where(html.nbx-on.nbx-tema-mork) table.toptentype2 tr > th:nth-child(3) {
+  width: 50px;
+}
+:where(html.nbx-on.nbx-tema-mork) table.toptentype2 tr > th:nth-child(4) {
+  width: 70px;
+}
+:where(html.nbx-on.nbx-tema-mork) table.toptentype2 tr > th:nth-child(5) {
+  width: 30px;
+}
+:where(html.nbx-on.nbx-tema-mork) table.toptentype2 tr > th:nth-child(6) {
+  width: 30px;
+}
+:where(html.nbx-on.nbx-tema-mork) table.toptentype2 tr > th:nth-child(7) {
+  width: 40px;
+}
+:where(html.nbx-on.nbx-tema-mork) table.toptentype2 tr > th:nth-child(8) {
+  width: 40px;
+}
+:where(html.nbx-on.nbx-tema-mork) table.toptentype3 tr > th:nth-child(1) {
+  width: 85px;
+}
+:where(html.nbx-on.nbx-tema-mork) table.toptentype3 tr > th:nth-child(3) {
+  width: 85px;
+}
+:where(html.nbx-on.nbx-tema-mork) table.toptentype4 tr > th {
+  width: 25%;
+}
+:where(html.nbx-on.nbx-tema-mork) table.toptentype5 tr > th:nth-child(1) {
+  width: 85px;
+}
+:where(html.nbx-on.nbx-tema-mork) table.toptentype5 tr > th:nth-child(3) {
+  width: 85px;
+}
+
+/* ── Color ranges ────────────────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) div#userinfo .rcolor01 {
+  color: #a1a100 !important;
+}
+:where(html.nbx-on.nbx-tema-mork) div#userinfo .rcolor02 {
+  color: #b8b800 !important;
+}
+:where(html.nbx-on.nbx-tema-mork) div#userinfo .rcolor03 {
+  color: #cfcf00 !important;
+}
+:where(html.nbx-on.nbx-tema-mork) div#userinfo .rcolor04 {
+  color: #e6e600 !important;
+}
+:where(html.nbx-on.nbx-tema-mork) div#userinfo .rcolor05 {
+  color: #e8e819 !important;
+}
+:where(html.nbx-on.nbx-tema-mork) div#userinfo .rcolor06 {
+  color: #ebeb33 !important;
+}
+:where(html.nbx-on.nbx-tema-mork) div#userinfo .rcolor07 {
+  color: #eeee4d !important;
+}
+:where(html.nbx-on.nbx-tema-mork) div#userinfo .rcolor08 {
+  color: #f0f066 !important;
+}
+:where(html.nbx-on.nbx-tema-mork) div#userinfo .rcolor09 {
+  color: #f2f280 !important;
+}
+:where(html.nbx-on.nbx-tema-mork) div#userinfo .rcolor10 {
+  color: #f5f599 !important;
+}
+:where(html.nbx-on.nbx-tema-mork) .rcolor01 {
+  color: #ff7519 !important;
+}
+:where(html.nbx-on.nbx-tema-mork) .rcolor02 {
+  color: #ff6600 !important;
+}
+:where(html.nbx-on.nbx-tema-mork) .rcolor03 {
+  color: #e65c00 !important;
+}
+:where(html.nbx-on.nbx-tema-mork) .rcolor04 {
+  color: #cc5200 !important;
+}
+:where(html.nbx-on.nbx-tema-mork) .rcolor05 {
+  color: #b24700 !important;
+}
+:where(html.nbx-on.nbx-tema-mork) .rcolor06 {
+  color: #993d00 !important;
+}
+:where(html.nbx-on.nbx-tema-mork) .rcolor07 {
+  color: #803300 !important;
+}
+:where(html.nbx-on.nbx-tema-mork) .rcolor08 {
+  color: #662900 !important;
+}
+:where(html.nbx-on.nbx-tema-mork) .rcolor09 {
+  color: #4c1f00 !important;
+}
+:where(html.nbx-on.nbx-tema-mork) .rcolor10 {
+  color: #331400 !important;
+}
+
+/* ── User class colors ───────────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) .ucColor {
+  font-weight: 700;
+}
+:where(html.nbx-on.nbx-tema-mork) .ucColor_sny {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+:where(html.nbx-on.nbx-tema-mork) .ucColor_bru {
+  color: var(--text);
+}
+:where(html.nbx-on.nbx-tema-mork) .ucColor_pow {
+  color: #b07cc6;
+}
+:where(html.nbx-on.nbx-tema-mork) .ucColor_vip {
+  color: #ff8c42;
+}
+:where(html.nbx-on.nbx-tema-mork) .ucColor_upl {
+  color: #c4956a;
+}
+:where(html.nbx-on.nbx-tema-mork) .ucColor_mod {
+  color: #e05c7a;
+}
+:where(html.nbx-on.nbx-tema-mork) .ucColor_adm {
+  color: #ff4e4e;
+}
+:where(html.nbx-on.nbx-tema-mork) .ucColor_dir {
+  color: var(--text);
+}
+:where(html.nbx-on.nbx-tema-mork) .ucColor_sys {
+  color: var(--text-muted);
+}
+
+/* ── Highlighted row ─────────────────────────────────────────── */
+:where(html.nbx-on.nbx-tema-mork) tr.sh.p:first-child > * {
+  color: var(--accent-yellow);
+}
+
+/* Wrapper — widen from 300px fixed to a fluid max-width */
+:where(html.nbx-on.nbx-tema-mork) div[style*="width: 300px"] {
+  width: auto !important;
+  max-width: 480px !important;
+}
+
+/* "Søk" h1 — demote to eyebrow label */
+:where(html.nbx-on.nbx-tema-mork) div[style*="width: 300px"] h1 {
+  display: none;
+}
+
+/* Card */
+:where(html.nbx-on.nbx-tema-mork) .contentbox {
+  background-color: var(--bg-panel);
+  border: 0.5px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem 1rem;
+  text-align: left;
+}
+
+:where(html.nbx-on.nbx-tema-mork) .contentbox > .contentbox.wrapcomment {
+  padding-left: 10px;
+}
+/* Links (Alle ønsker / Skjul oppfylte) */
+:where(html.nbx-on.nbx-tema-mork) .contentbox a {
+  font-size: 12px;
+  color: var(--accent);
+  opacity: 0.85;
+  text-decoration: none;
+}
+:where(html.nbx-on.nbx-tema-mork) .contentbox a:hover {
+  opacity: 1;
+  text-decoration: underline;
+  color: var(--accent); /* override the accent-red hover */
+}
+
+/* Select full-width */
+:where(html.nbx-on.nbx-tema-mork) .contentbox select {
+  font-family: var(--font);
+  font-size: var(--font-size);
+  background-color: var(--bg-input);
+  color: var(--text);
+  border: 0.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-sm);
+  padding: 7px 10px;
+  width: 100%;
+  display: block;
+  margin-bottom: 8px;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+/* Text input full-width */
+:where(html.nbx-on.nbx-tema-mork) .contentbox input[type="text"] {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 7px 10px;
+  border: 0.5px solid rgba(255, 255, 255, 0.12);
+}
+
+/* Submit button — flat, no gradient */
+:where(html.nbx-on.nbx-tema-mork) input[type="submit"],
+:where(html.nbx-on.nbx-tema-mork) input[type="submit"].submit {
+  background: var(--accent);
+  color: var(--text-bright);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: opacity 0.1s;
+  letter-spacing: 0.02em;
+}
+:where(html.nbx-on.nbx-tema-mork) input[type="submit"]:hover {
+  opacity: 0.85;
+}
+/* ============================================================
+   Designupgrade: rettinger av layouten
+   Bokser som var smale og midtstilte på siden, er det også i
+   mørk modus (temaet hadde gjort noen av dem fullbredde).
+   ============================================================ */
+/* Knapper: vanlig størrelse, plassert der siden har dem (midtstilt de fleste steder) */
+:where(html.nbx-on.nbx-tema-mork) input[type="submit"],
+:where(html.nbx-on.nbx-tema-mork) input[type="reset"] {
+  padding: 7px 18px;
+}
+/* Forumoversikten: like bred som innholdet, midtstilt (som originalen) */
+:where(html.nbx-on.nbx-tema-mork) table.forumTable {
+  width: auto;
+}
+/* ── Søkeboksen på torrentlista ───────────────────────────── */
+/* Litt bredere enn originalen (870px) siden skriften er større,
+   så ni kategorier og sjangre får plass på hver linje */
+:where(html.nbx-on.nbx-tema-mork) .searchbox {
+  width: 1000px;
+  max-width: 100%;
+}
+:where(html.nbx-on.nbx-tema-mork) div.contentbox.searchbox {
+  padding: 14px 16px;
+}
+:where(html.nbx-on.nbx-tema-mork) .searchbox .cat_cbox {
+  width: calc(11.11% - 4px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+:where(html.nbx-on.nbx-tema-mork) .searchbox .cat_cbox input[type="checkbox"] {
+  margin: 0 2px 0 0; /* + mellomrommet i HTML-en */
+  vertical-align: -2px;
+}
+:where(html.nbx-on.nbx-tema-mork) .searchbox .cat_cbox a {
+  font-size: 11.5px;
+}
+:where(html.nbx-on.nbx-tema-mork) .searchbox .chead {
+  display: inline-block;
+  margin: 2px 0 4px;
+}
+/* Vis døde / Søk i beskrivelse / Scene / IMDb: på én linje som originalen */
+:where(html.nbx-on.nbx-tema-mork) .advanced .adva_boxes {
+  width: 750px;
+  max-width: 100%;
+}
+:where(html.nbx-on.nbx-tema-mork) .advanced .adva_box {
+  width: 150px;
+}
+:where(html.nbx-on.nbx-tema-mork) .searchbox.advanced .adva_box select,
+:where(html.nbx-on.nbx-tema-mork) .searchbox.advanced .adva_box input[type="text"] {
+  display: inline-block;
+  width: 136px;
+  margin: 4px 0 0;
+  padding: 5px 8px;
+  height: auto;
+}
+:where(html.nbx-on.nbx-tema-mork) .searchbox.advanced .adva_box select {
+  padding-right: 24px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238a9ab0' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+}
+:where(html.nbx-on.nbx-tema-mork) .searchbox.advanced .ir select {
+  width: 52px;
+  padding-right: 18px;
+  background-position: right 6px center;
+}
+:where(html.nbx-on.nbx-tema-mork) .advanced .fl {
+  width: 210px;
+}
+:where(html.nbx-on.nbx-tema-mork) .searchbox.advanced .fl input[type="checkbox"] {
+  width: auto;
+  margin-top: 4px;
+}
+/* Søkefeltet og knappen på samme linje, midtstilt */
+:where(html.nbx-on.nbx-tema-mork) div.contentbox.searchbox.searchstr {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+:where(html.nbx-on.nbx-tema-mork) div.contentbox.searchbox.searchstr input[type="text"] {
+  display: inline-block;
+  width: 360px;
+  margin: 0;
+  padding: 7px 10px;
+}
+:where(html.nbx-on.nbx-tema-mork) div.contentbox.searchbox.searchstr input[type="submit"] {
+  display: inline-block;
+  width: auto;
+  margin: 0;
+  padding: 7px 22px;
+}
+/* ── Ikonene øverst til høyre ─────────────────────────────── */
+/* Sidens ikoner er grå 32px-bilder laget for en lys flis; på mørk
+   bakgrunn ble de grumsete og forskjøvet. De kjente ikonene byttes ut med
+   enkle strekikoner i temaets farger (samme motiv som før). Ukjente ikoner
+   beholder bildet sitt. */
+:where(html.nbx-on.nbx-tema-mork) #header_toolbar #icons a.icon[href*="notifications.php"],
+:where(html.nbx-on.nbx-tema-mork) #header_toolbar #icons a.icon[href*="support.php"],
+:where(html.nbx-on.nbx-tema-mork) #header_toolbar #icons a.icon[href*="inbox.php"]:not([href*="out="]),
+:where(html.nbx-on.nbx-tema-mork) #header_toolbar #icons a.icon[href*="inbox.php"][href*="out="],
+:where(html.nbx-on.nbx-tema-mork) #header_toolbar #icons a.icon[href*="friends.php"],
+:where(html.nbx-on.nbx-tema-mork) #header_toolbar #icons a.icon[href*="torrents.php"] {
+  width: 32px;
+  height: 32px;
+  margin-left: 6px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.05) none !important;
+  color: #a9b1c7;
+}
+:where(html.nbx-on.nbx-tema-mork) #header_toolbar #icons a.icon:hover {
+  background-color: var(--bg-hover) !important;
+  border-color: var(--border-bright);
+  color: var(--text-bright);
+}
+:where(html.nbx-on.nbx-tema-mork) #header_toolbar #icons a.icon[href*="notifications.php"]::before,
+:where(html.nbx-on.nbx-tema-mork) #header_toolbar #icons a.icon[href*="support.php"]::before,
+:where(html.nbx-on.nbx-tema-mork) #header_toolbar #icons a.icon[href*="inbox.php"]:not([href*="out="])::before,
+:where(html.nbx-on.nbx-tema-mork) #header_toolbar #icons a.icon[href*="inbox.php"][href*="out="]::before,
+:where(html.nbx-on.nbx-tema-mork) #header_toolbar #icons a.icon[href*="friends.php"]::before,
+:where(html.nbx-on.nbx-tema-mork) #header_toolbar #icons a.icon[href*="torrents.php"]::before {
+  content: "";
+  width: 18px;
+  height: 18px;
+  background-color: currentColor;
+  -webkit-mask: var(--nbx-ikon) center / contain no-repeat;
+  mask: var(--nbx-ikon) center / contain no-repeat;
+}
+:where(html.nbx-on.nbx-tema-mork) #header_toolbar #icons a.icon[href*="notifications.php"] { --nbx-ikon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d=%22M4 4.5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9.5L5 20.5v-4H4a1 1 0 0 1-1-1v-10a1 1 0 0 1 1-1z%22/%3E%3C/svg%3E"); }
+:where(html.nbx-on.nbx-tema-mork) #header_toolbar #icons a.icon[href*="support.php"] { --nbx-ikon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx=%2212%22 cy=%2212%22 r=%229%22/%3E%3Ccircle cx=%2212%22 cy=%2212%22 r=%223.6%22/%3E%3Cpath d=%22m5.6 5.6 3.9 3.9m5 5 3.9 3.9m0-12.8-3.9 3.9m-5 5-3.9 3.9%22/%3E%3C/svg%3E"); }
+:where(html.nbx-on.nbx-tema-mork) #header_toolbar #icons a.icon[href*="inbox.php"]:not([href*="out="]) { --nbx-ikon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x=%223%22 y=%225%22 width=%2218%22 height=%2214%22 rx=%222%22/%3E%3Cpath d=%22m3.5 7 8.5 6 8.5-6%22/%3E%3C/svg%3E"); }
+:where(html.nbx-on.nbx-tema-mork) #header_toolbar #icons a.icon[href*="inbox.php"][href*="out="] { --nbx-ikon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d=%22M3 13.5h5l1.5 2.5h5l1.5-2.5h5V19a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z%22/%3E%3Cpath d=%22M12 3.5v8.5M8.5 7 12 3.5 15.5 7%22/%3E%3C/svg%3E"); }
+:where(html.nbx-on.nbx-tema-mork) #header_toolbar #icons a.icon[href*="friends.php"] { --nbx-ikon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d=%22M12 20 4.4 12.4a4.6 4.6 0 0 1 6.5-6.5L12 7l1.1-1.1a4.6 4.6 0 0 1 6.5 6.5z%22/%3E%3C/svg%3E"); }
+:where(html.nbx-on.nbx-tema-mork) #header_toolbar #icons a.icon[href*="torrents.php"] { --nbx-ikon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d=%22M8 18.5H6.5a4 4 0 0 1-.4-8A6 6 0 0 1 17.7 9a4.5 4.5 0 0 1-.2 9.5H16%22/%3E%3Cpath d=%22M12 12v8.5M8.8 15.2 12 12l3.2 3.2%22/%3E%3C/svg%3E"); }
+/* ── Logoen ───────────────────────────────────────────────── */
+/* Sidens egen logo uten den blå bakgrunnen (laget for Designupgrade),
+   så tekst, skygge og flagg står rett på den mørke toppen. Bygd inn her,
+   så ingenting hentes fra andre steder. */
+:where(html.nbx-on.nbx-tema-mork) #header_logo a {
+  background-image: url("data:image/png;base64,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");
+  background-repeat: no-repeat;
+}
+:where(html.nbx-on.nbx-tema-mork) #header_logo a:hover,
+:where(html.nbx-on.nbx-tema-mork) #header_logo a:focus {
+  background-image: url("data:image/png;base64,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");
+}
+/* ── Donérknappen ─────────────────────────────────────────── */
+/* Samme bilde i mørk utgave (laget for Designupgrade). Originalbildet skyves
+   ut av boksen med padding, og den mørke utgaven vises som bakgrunn. */
+:where(html.nbx-on.nbx-tema-mork) #header_toolbar #donate a[href*="donate.php"] img[src*="paypal3"] {
+  box-sizing: border-box;
+  width: 200px;
+  height: 23px;
+  padding-left: 200px;
+  background: url("data:image/png;base64,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") no-repeat;
+  vertical-align: middle;
+}
+:where(html.nbx-on.nbx-tema-mork) #header_toolbar #donate a[href*="donate.php"]:hover img[src*="paypal3"] {
+  filter: brightness(1.2);
+}
+/* ── Enda mørkere ─────────────────────────────────────────── */
+/* Valget «Enda mørkere» i popupen legger til klassen nbx-tema-morkere:
+   samme tema, men nesten svart og helt uten blått – lenker, knapper og
+   markeringer er hvite, flatene nøytralt grå (fint på OLED). */
+html:where(.nbx-on.nbx-tema-mork).nbx-tema-morkere {
+  --bg-page: #000000;
+  --bg-container: #08080a;
+  --bg-panel: #101012;
+  --bg-panel-alt: rgba(255, 255, 255, 0.025);
+  --bg-input: #0c0c0e;
+  --bg-hover: #1a1a1e;
+  --bg-active: #26262b;
+  --bg-header: #060607;
+  --bg-header-grad: linear-gradient(180deg, #0d0d10 0%, #060607 100%);
+  --accent: #eceef2;
+  --accent-dim: #2b2c31;
+  --accent-glow: rgba(255, 255, 255, 0.12);
+  --border: #1d1e23;
+  --border-bright: #2e2f36;
+  --text: #b9bbc2;
+  --text-muted: #75777f;
+  --text-bright: #ffffff;
+  --text-dim: #4a4c53;
+  --text-link: #f2f3f5;
+  --text-link-hover: #ffffff;
+}
+/* Det svake blå skjæret i bakgrunnen tas bort */
+html:where(.nbx-on.nbx-tema-mork).nbx-tema-morkere body {
+  background-image: none;
+}
+html:where(.nbx-on.nbx-tema-mork).nbx-tema-morkere #container {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.03);
+}
+html:where(.nbx-on.nbx-tema-mork).nbx-tema-morkere a:hover {
+  text-decoration: underline;
+}
+/* Overskriftene i sidepanelet: grå i stedet for blå */
+html:where(.nbx-on.nbx-tema-mork).nbx-tema-morkere #sidebar ul li.title {
+  background: linear-gradient(90deg, #26272d 0%, #141417 100%);
+}
+/* Knapper: hvite med svart tekst */
+html:where(.nbx-on.nbx-tema-mork).nbx-tema-morkere input[type="submit"],
+html:where(.nbx-on.nbx-tema-mork).nbx-tema-morkere input[type="submit"].submit,
+html:where(.nbx-on.nbx-tema-mork).nbx-tema-morkere input[type="reset"] {
+  background: #eceef2;
+  color: #0b0c0f;
+}
+html:where(.nbx-on.nbx-tema-mork).nbx-tema-morkere input[type="submit"]:hover,
+html:where(.nbx-on.nbx-tema-mork).nbx-tema-morkere input[type="reset"]:hover {
+  background: #ffffff;
+  opacity: 1;
+}
+/* Blåtoner som var skrevet rett inn i temaet */
+html:where(.nbx-on.nbx-tema-mork).nbx-tema-morkere table.vtable select:focus {
+  border-color: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.05);
+}
+html:where(.nbx-on.nbx-tema-mork).nbx-tema-morkere h1.quickreply:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.05);
+}
+html:where(.nbx-on.nbx-tema-mork).nbx-tema-morkere div.pager strong a:hover {
+  border-color: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.08);
+}
+html:where(.nbx-on.nbx-tema-mork).nbx-tema-morkere div.pager strong span {
+  background: rgba(255, 255, 255, 0.12);
+}
+html:where(.nbx-on.nbx-tema-mork).nbx-tema-morkere div.pager strong.next a {
+  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.05);
+}
+html:where(.nbx-on.nbx-tema-mork).nbx-tema-morkere div.pager strong.prev a:hover {
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.1);
+}
+/* Donérknappen i grått i stedet for mørk blå */
+html:where(.nbx-on.nbx-tema-mork).nbx-tema-morkere #header_toolbar #donate a[href*="donate.php"] img[src*="paypal3"] {
+  background-image: url("data:image/png;base64,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");
+}
+/* ── Loggen (log.php) ─────────────────────────────────────── */
+/* Siden fargelegger radene etter hendelse med lyse farger rett i
+   style-attributtet (hvit, blå = lastet opp, rød = slettet, kaki = redigert).
+   Med lys tekst ble det uleselig, så radene får mørke toner og en farget
+   stripe til venstre i stedet. Ukjente typer blir nøytrale. */
+:where(html.nbx-on.nbx-tema-mork) tr[class^="log_"] {
+  background-color: transparent !important;
+}
+:where(html.nbx-on.nbx-tema-mork) tr.log_uploaded {
+  background-color: rgba(78, 124, 255, 0.13) !important;
+}
+:where(html.nbx-on.nbx-tema-mork) tr.log_deleted {
+  background-color: rgba(255, 78, 78, 0.13) !important;
+}
+:where(html.nbx-on.nbx-tema-mork) tr.log_edited {
+  background-color: rgba(245, 197, 66, 0.09) !important;
+}
+:where(html.nbx-on.nbx-tema-mork) tr.log_uploaded > td:first-child {
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+:where(html.nbx-on.nbx-tema-mork) tr.log_deleted > td:first-child {
+  box-shadow: inset 3px 0 0 var(--accent-red);
+}
+:where(html.nbx-on.nbx-tema-mork) tr.log_edited > td:first-child {
+  box-shadow: inset 3px 0 0 var(--accent-yellow);
+}
+/* «Enda mørkere»: opplastet i grått og hvitt i stedet for blått */
+html:where(.nbx-on.nbx-tema-mork).nbx-tema-morkere tr.log_uploaded {
+  background-color: rgba(255, 255, 255, 0.07) !important;
+}
+/* ── Ratiofargen i forum, profiler og kommentarer ─────────── */
+/* Siden går fra oransje (rcolor01) til nesten svart-brun (rcolor10) for
+   høyere ratio – laget for hvit bakgrunn, og nesten usynlig på mørk. Her går
+   skalaen motsatt vei: høyere ratio gir lysere oransje. Toppfeltet
+   (div#userinfo) har egne, gule farger fra temaet og berøres ikke.
+   Klassen står to ganger fordi siden også bruker !important, og da må
+   regelen være sterkere for å vinne. */
+:where(html.nbx-on.nbx-tema-mork) .rcolor01.rcolor01 { color: #d86b24 !important; }
+:where(html.nbx-on.nbx-tema-mork) .rcolor02.rcolor02 { color: #dd7228 !important; }
+:where(html.nbx-on.nbx-tema-mork) .rcolor03.rcolor03 { color: #e2782b !important; }
+:where(html.nbx-on.nbx-tema-mork) .rcolor04.rcolor04 { color: #ea8435 !important; }
+:where(html.nbx-on.nbx-tema-mork) .rcolor05.rcolor05 { color: #f09142 !important; }
+:where(html.nbx-on.nbx-tema-mork) .rcolor06.rcolor06 { color: #f49f53 !important; }
+:where(html.nbx-on.nbx-tema-mork) .rcolor07.rcolor07 { color: #f7ae67 !important; }
+:where(html.nbx-on.nbx-tema-mork) .rcolor08.rcolor08 { color: #f9bd7e !important; }
+:where(html.nbx-on.nbx-tema-mork) .rcolor09.rcolor09 { color: #fbcc97 !important; }
+:where(html.nbx-on.nbx-tema-mork) .rcolor10.rcolor10 { color: #fddbb2 !important; }
+/* ── Sidevelgeren for kommentarer (div.wrapPager) ─────────── */
+/* «  ‹  [Side 1 av 1]  ›  » – siden gir knappene lyse, grå gradienter
+   og boksen fast bredde på 202px. Med temaets større tekstfelt detter
+   siste knapp ned på en ny linje. Her blir det én samlet, mørk rad. */
+:where(html.nbx-on.nbx-tema-mork) div.wrapPager {
+  width: auto;
+}
+:where(html.nbx-on.nbx-tema-mork) .pagination {
+  float: none;
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-input);
+  overflow: hidden;
+}
+:where(html.nbx-on.nbx-tema-mork) .pagination a,
+:where(html.nbx-on.nbx-tema-mork) .pagination a.disabled {
+  float: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 28px;
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1;
+  border-left: 1px solid var(--border);
+  border-right: 0;
+}
+:where(html.nbx-on.nbx-tema-mork) .pagination a:first-child {
+  border-left: 0;
+}
+:where(html.nbx-on.nbx-tema-mork) .pagination input[type="text"] + a {
+  border-left: 1px solid var(--border);
+}
+:where(html.nbx-on.nbx-tema-mork) .pagination a:hover,
+:where(html.nbx-on.nbx-tema-mork) .pagination a:focus {
+  background: var(--bg-hover);
+  color: var(--text-bright);
+}
+:where(html.nbx-on.nbx-tema-mork) .pagination a.disabled,
+:where(html.nbx-on.nbx-tema-mork) .pagination a.disabled:hover,
+:where(html.nbx-on.nbx-tema-mork) .pagination a.disabled:focus {
+  background: transparent;
+  color: var(--text-dim);
+  cursor: default;
+}
+:where(html.nbx-on.nbx-tema-mork) .pagination input[type="text"] {
+  float: none;
+  width: 110px;
+  height: 28px;
+  margin: 0;
+  padding: 0 6px;
+  border: 0;
+  border-left: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 12px;
+  text-align: center;
+  box-shadow: none;
+}
+:where(html.nbx-on.nbx-tema-mork) .pagination input[type="text"]:focus {
+  border-color: var(--border);
+  background: var(--bg-hover);
+  box-shadow: none;
+}
+/* ── Varsellista (klikk på varselikonet) ──────────────────── */
+/* Temaet gir blant annet kategorinavnene i søkeboksen opacity: 0.85. Slike
+   elementer får sitt eget lag og tegnes oppå alt som kommer før dem i siden,
+   også varsellista øverst – teksten havnet oppå varslene. Lista legges øverst. */
+:where(html.nbx-on.nbx-tema-mork) div#notificationList {
+  z-index: 1000;
+}

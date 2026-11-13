@@ -1,0 +1,27 @@
+/* Designupgrade — dine CSS-justeringer
+   ---------------------------------------------------------------
+   Alt i denne fila gjelder bare på siden manifest.json peker på.
+   Skriv hver regel med  html.nbx-on  først, så slås den av når du
+   skrur av Designupgrade i popupen (og siden ser original ut igjen).
+
+   Eksempel på en regel:
+
+     html.nbx-on #container { width: 1400px; }
+
+   Nye justeringer legges under denne kommentaren.
+   --------------------------------------------------------------- */
+
+/* Beskrivelsen på torrentsiden: samme størrelse og linjeavstand som i mørk
+   modus (12px, 1,5), litt lettere å lese enn sidens 8pt. */
+html.nbx-on li.item > span[style*="monospace"] {
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* Varselboblen nede til høyre (nye varsler): sidens skript toner den ut over
+   fem sekunder, og så lenge er den halvgjennomsiktig, så teksten bak skinner
+   gjennom og blir lest oppå. Her er den helt dekkende til den forsvinner. */
+html.nbx-on a#notification_popup {
+  opacity: 1 !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+}
