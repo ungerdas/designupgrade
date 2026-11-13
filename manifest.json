@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Designupgrade",
-  "version": "3.8.11",
+  "version": "3.8.12",
   "description": "Små designjusteringer: plakat og handling fra TMDB, kortvisning med plakater og språkflagg i torrentlistene, og mørk modus. Resten av siden er original.",
   "icons": {
     "16": "icons/icon16.png",
