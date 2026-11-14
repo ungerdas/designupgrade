@@ -293,9 +293,12 @@ html.nbx-on.nbx-mobil.nbx-meny-apen,
 html.nbx-on.nbx-mobil.nbx-meny-apen body { overflow: hidden; }
 
 /* ---------- Innhold ---------- */
+/* Sidens eget skript (setWidth) setter bredden inline ut fra PC-oppsettet:
+   #container 1200/1500 px og #content = beholderen minus 180 px til sidemenyen.
+   Derfor !important her og på #container over. */
 html.nbx-on.nbx-mobil #content {
   margin: 0;
-  width: auto;
+  width: auto !important;
   min-width: 0;
   padding: 10px 8px 16px;
   box-sizing: border-box;
@@ -502,6 +505,9 @@ html.nbx-on.nbx-mobil .avatar img.avatar {
 html.nbx-on.nbx-mobil .avatar div.stats { padding: 0; font-size: 11.5px; line-height: 1.45; }
 html.nbx-on.nbx-mobil .avatar div.stats br { display: none; }
 html.nbx-on.nbx-mobil .avatar div.stats > * { margin-right: 6px; }
+/* Sidens skript (setCommentHeight) gjør avatar og innlegg like høye som hele
+   innlegget, så de står side om side på PC. På mobil står avataren over. */
+html.nbx-on.nbx-mobil .wrapcomment > :is(div.comment, div.avatar) { height: auto !important; }
 html.nbx-on.nbx-mobil .wrapcomment div.comment {
   margin-left: 0;
   padding: 10px;
@@ -554,7 +560,9 @@ html.nbx-on.nbx-mobil table.nbx-kortbord :is(td, th) {
   text-align: left;
   overflow-wrap: anywhere;
 }
-html.nbx-on.nbx-mobil table.nbx-kortbord td { font-size: 12.5px; line-height: 1.45; }
+/* Annenhver rad har bakgrunn på hver celle (striper). I kortene ble det til
+   løse bokser bak hver etikett, så cellene er gjennomsiktige; strekene skiller kortene. */
+html.nbx-on.nbx-mobil table.nbx-kortbord td { font-size: 12.5px; line-height: 1.45; background: transparent; }
 html.nbx-on.nbx-mobil table.nbx-kortbord td:first-child { flex: 1 1 100%; font-size: 14.5px; line-height: 1.4; }
 html.nbx-on.nbx-mobil table.nbx-kortbord td:first-child > br { display: none; }
 html.nbx-on.nbx-mobil table.nbx-kortbord td:first-child > span {
