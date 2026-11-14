@@ -1,0 +1,628 @@
+/* Designupgrade — mobilvisning
+   ------------------------------------------------------------------
+   Gjelder bare når mobil.js har satt klassen nbx-mobil (telefon, og
+   «Mobilvisning» står på Auto). Siden får telefonens bredde, alt legges i
+   én kolonne, og sidemenyen ligger bak menyknappen øverst til venstre.
+   Virker med vanlig tema, mørk modus, «Enda mørkere» og andre temaer. */
+
+/* Utenfor mobilvisning finnes ikke menyknappen */
+.nbx-menyknapp,
+.nbx-meny-lukk,
+.nbx-meny-bakgrunn { display: none; }
+
+html.nbx-on.nbx-mobil {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+html.nbx-on.nbx-mobil body {
+  min-width: 0;
+  margin: 0;
+  font-size: 13px;
+}
+
+/* ---------- Ramme: én kolonne ----------
+   Headeren er to rader i et rutenett: logo-raden og verktøylinja under.
+   #header_logo strekker seg over begge, så temaets bakgrunn ligger bak hele headeren. */
+html.nbx-on.nbx-mobil #container {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 54px auto;
+  width: auto !important;
+  min-width: 0;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  z-index: auto; /* ellers havner menyen under det mørke teppet */
+}
+
+/* ---------- Header ---------- */
+html.nbx-on.nbx-mobil #header_logo {
+  grid-area: 1 / 1 / 3 / 2;
+  position: relative;
+  inset: auto;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: auto;
+  height: auto;
+  min-height: 54px;
+  margin: 0;
+  padding: 8px 8px 0;
+  box-sizing: border-box;
+}
+html.nbx-on.nbx-mobil #header_logo > a {
+  flex: none;
+  width: clamp(92px, calc(100vw - 272px), 170px);
+  height: auto;
+  aspect-ratio: 440 / 97;
+  margin-top: 4px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: left center;
+}
+
+/* Verktøylinja: velkomst, ratio og donasjon under logoen */
+html.nbx-on.nbx-mobil #header_toolbar {
+  grid-area: 2 / 1 / 3 / 2;
+  position: static;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  width: auto;
+  height: auto;
+  min-width: 0;
+  padding: 4px 10px 10px;
+  box-sizing: border-box;
+  background: none;
+}
+/* Temaene plasserer alt i verktøylinja absolutt (mørk modus med to id-er, så hver
+   får sin egen regel). #icons og varsellista ligger inne i #inner_toolbar. */
+html.nbx-on.nbx-mobil #header_toolbar div { position: static; }
+html.nbx-on.nbx-mobil #header_toolbar #inner_toolbar {
+  order: 1;
+  position: static;
+  inset: auto;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+html.nbx-on.nbx-mobil #header_toolbar #userinfo {
+  position: static;
+  inset: auto;
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+html.nbx-on.nbx-mobil #header_toolbar #donate {
+  order: 2;
+  position: static;
+  inset: auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  font-size: 12px;
+}
+html.nbx-on.nbx-mobil #header_toolbar #donate img { margin-top: 0 !important; vertical-align: middle; }
+html.nbx-on.nbx-mobil #header_toolbar #connectable { order: 3; position: static; inset: auto; }
+html.nbx-on.nbx-mobil #header_toolbar #date { display: none; }
+
+/* Ikonene (varsler, innboks …) øverst til høyre, på samme rad som logoen */
+html.nbx-on.nbx-mobil #header_toolbar #icons {
+  position: absolute;
+  inset: 11px 8px auto auto;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+html.nbx-on.nbx-mobil #header_toolbar #icons a.icon {
+  float: none;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  margin: 0;
+  box-sizing: border-box;
+}
+@media (max-width: 370px) {
+  html.nbx-on.nbx-mobil #header_toolbar #icons a.icon { width: 28px; height: 28px; }
+  html.nbx-on.nbx-mobil #header_logo > a { width: clamp(84px, calc(100vw - 248px), 170px); }
+}
+
+/* Varsellista folder seg ut under headeren, i full bredde */
+html.nbx-on.nbx-mobil #header_toolbar #notificationList {
+  position: fixed;
+  inset: 54px 6px auto 6px;
+  z-index: 2147483001;
+  width: auto;
+  max-width: none;
+  box-sizing: border-box;
+}
+html.nbx-on.nbx-mobil #notificationList ul { height: auto; max-height: 60vh; }
+html.nbx-on.nbx-mobil #notificationList ul li { float: none; }
+html.nbx-on.nbx-mobil #notificationList ul li a {
+  display: block;
+  width: auto;
+  height: auto;
+  min-height: 50px;
+  box-sizing: border-box;
+}
+html.nbx-on.nbx-mobil a#notification_popup { left: 8px; right: 8px; bottom: 12px; width: auto; }
+
+/* ---------- Hovedmenyen (Hjem, Torrents, Forum …) ---------- */
+html.nbx-on.nbx-mobil #menu {
+  display: block;
+  width: auto;
+  height: auto;
+}
+html.nbx-on.nbx-mobil #menu ul {
+  display: flex;
+  height: auto;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+html.nbx-on.nbx-mobil #menu ul::-webkit-scrollbar { display: none; }
+html.nbx-on.nbx-mobil #menu ul li {
+  display: block;
+  flex: 1 0 auto;
+  width: auto;
+  height: auto;
+}
+html.nbx-on.nbx-mobil #menu ul li a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 42px;
+  padding: 0 10px;
+  line-height: normal;
+  font-size: 14px;
+}
+
+/* ---------- Sidemenyen: skuff fra venstre ---------- */
+html.nbx-on.nbx-mobil .nbx-menyknapp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 38px;
+  height: 38px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, .3);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .08);
+  color: #fff;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+html.nbx-on.nbx-mobil.nbx-hode-lys .nbx-menyknapp {
+  border-color: rgba(0, 0, 0, .3);
+  background: rgba(255, 255, 255, .35);
+  color: #1d2733;
+}
+html.nbx-on.nbx-mobil :is(.nbx-menyknapp, .nbx-meny-lukk) svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+html.nbx-on.nbx-mobil #sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 2147483000;
+  float: none;
+  width: min(300px, 86vw);
+  margin: 0;
+  padding: 54px 12px calc(24px + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  background: var(--nbx-skuff-bg, #fff);
+  box-shadow: 4px 0 24px rgba(0, 0, 0, .45);
+  transform: translateX(-104%);
+  visibility: hidden;
+  transition: transform .22s ease, visibility 0s linear .22s;
+}
+html.nbx-on.nbx-mobil.nbx-meny-apen #sidebar {
+  transform: none;
+  visibility: visible;
+  transition: transform .22s ease, visibility 0s;
+}
+html.nbx-on.nbx-mobil .nbx-meny-lukk {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: rgba(127, 127, 127, .15);
+  color: inherit;
+  cursor: pointer;
+}
+html.nbx-on.nbx-mobil #sidebar ul li.top { margin-bottom: 14px; font-size: 14px; }
+html.nbx-on.nbx-mobil #sidebar ul li.title {
+  height: auto;
+  padding: 8px 12px;
+  font-size: 12px;
+  line-height: 1.3;
+}
+html.nbx-on.nbx-mobil #sidebar ul li.item a {
+  padding: 10px 14px;
+  font-size: 15px;
+  line-height: 1.3;
+}
+html.nbx-on.nbx-mobil #sidebar form { margin: 0 0 4px; }
+html.nbx-on.nbx-mobil #sidebar input[type="text"] {
+  width: 100%;
+  margin: 2px 0 8px;
+  padding: 8px 10px;
+  box-sizing: border-box;
+  font-size: 16px; /* under 16 px zoomer iPhone inn når feltet får fokus */
+}
+
+html.nbx-on.nbx-mobil .nbx-meny-bakgrunn {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 2147482999;
+  background: rgba(0, 0, 0, .5);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .2s, visibility 0s linear .2s;
+}
+html.nbx-on.nbx-mobil.nbx-meny-apen .nbx-meny-bakgrunn {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity .2s;
+}
+html.nbx-on.nbx-mobil.nbx-meny-apen,
+html.nbx-on.nbx-mobil.nbx-meny-apen body { overflow: hidden; }
+
+/* ---------- Innhold ---------- */
+html.nbx-on.nbx-mobil #content {
+  margin: 0;
+  width: auto;
+  min-width: 0;
+  padding: 10px 8px 16px;
+  box-sizing: border-box;
+  font-size: 13px;
+}
+/* Faste bredder (800, 960, 1000 px …) holdes innenfor skjermen */
+html.nbx-on.nbx-mobil #content :is(div, form, p, ul, ol, dl, h1, h2, h3, h4, fieldset, blockquote, pre, textarea, input, select, iframe, video, embed, object) {
+  max-width: 100%;
+}
+html.nbx-on.nbx-mobil #content :is(div, form, fieldset, pre, textarea, input, select) { box-sizing: border-box; }
+html.nbx-on.nbx-mobil #content img:not(table img) { max-width: 100%; }
+html.nbx-on.nbx-mobil #content pre { overflow-x: auto; white-space: pre; }
+html.nbx-on.nbx-mobil #content :is(h1, h2) { overflow-wrap: anywhere; }
+html.nbx-on.nbx-mobil #content h2 { font-size: 16px; }
+html.nbx-on.nbx-mobil #content :is(input[type="text"], input[type="search"], input[type="password"], input[type="number"], input:not([type]), select, textarea) {
+  font-size: 16px;
+}
+html.nbx-on.nbx-mobil #content :is(input[type="submit"], input[type="button"], button) { min-height: 34px; }
+html.nbx-on.nbx-mobil .nbx-rull {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+html.nbx-on.nbx-mobil div.staffmess { display: block; margin: 0 0 8px; }
+
+/* ---------- Søkeboksen ---------- */
+html.nbx-on.nbx-mobil .searchbox { width: auto; }
+html.nbx-on.nbx-mobil h1.searchbox.searchhed { font-size: 13px; line-height: 1.5; }
+html.nbx-on.nbx-mobil div.contentbox.searchbox { padding: 10px; }
+html.nbx-on.nbx-mobil .searchbox .cat_cbox {
+  width: calc(33.333% - 4px);
+  padding: 3px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+html.nbx-on.nbx-mobil .searchbox .cat_cbox a { font-size: 13px; }
+html.nbx-on.nbx-mobil .searchbox .cat_cbox input[type="checkbox"] { width: 16px; height: 16px; margin: 0 4px 0 0; vertical-align: -3px; }
+html.nbx-on.nbx-mobil .advanced .adva_boxes { width: auto; }
+html.nbx-on.nbx-mobil .advanced .adva_box {
+  width: 50%;
+  padding-right: 8px;
+  margin-bottom: 6px;
+  box-sizing: border-box;
+}
+html.nbx-on.nbx-mobil .searchbox.advanced .adva_box :is(select, input[type="text"]),
+html.nbx-on.nbx-mobil .advanced .adva_box :is(select, input) { width: 100%; }
+html.nbx-on.nbx-mobil .searchbox.advanced .ir :is(select, input),
+html.nbx-on.nbx-mobil .advanced .ir :is(select, input) { width: 46%; }
+html.nbx-on.nbx-mobil .advanced .fl { width: auto; }
+html.nbx-on.nbx-mobil div.contentbox.searchbox.searchstr { display: flex; align-items: center; gap: 8px; }
+html.nbx-on.nbx-mobil div.contentbox.searchbox.searchstr input[type="text"] { flex: 1; width: auto; min-width: 0; }
+
+/* ---------- Sidevelgere ---------- */
+html.nbx-on.nbx-mobil div.wrapPager { width: auto; max-width: 100%; }
+html.nbx-on.nbx-mobil .pagination { flex-wrap: wrap; max-width: 100%; }
+html.nbx-on.nbx-mobil .pagination input[type="text"] { width: 90px; }
+html.nbx-on.nbx-mobil div.pager { line-height: 1.2; }
+
+/* ---------- Kortlistene (torrenter, ønsker, Topp 10) ----------
+   Plakat og tekst øverst, tall og knapper på en egen rad under. */
+html.nbx-on.nbx-mobil :is(.nbx-kortliste, .nbx-sorter) { max-width: none; }
+html.nbx-on.nbx-mobil .nbx-sorter {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  margin: 8px 0 0;
+  padding: 0 0 4px;
+  font-size: 13px;
+  scrollbar-width: none;
+}
+html.nbx-on.nbx-mobil .nbx-sorter::-webkit-scrollbar { display: none; }
+html.nbx-on.nbx-mobil .nbx-sorter a { flex: none; padding: 5px 9px; }
+html.nbx-on.nbx-mobil .nbx-kort {
+  grid-template-columns: 56px minmax(0, 1fr);
+  column-gap: 10px;
+  row-gap: 8px;
+  padding: 8px;
+}
+html.nbx-on.nbx-mobil .nbx-kort a.nbx-kort-plakat { width: 56px; height: 84px; }
+html.nbx-on.nbx-mobil .nbx-kort-midt { gap: 4px; justify-content: flex-start; }
+html.nbx-on.nbx-mobil .nbx-kort a.nbx-kort-navn {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  font-size: 14.5px;
+  line-height: 1.3;
+}
+html.nbx-on.nbx-mobil .nbx-kort-meta { font-size: 12.5px; }
+html.nbx-on.nbx-mobil .nbx-kort-meta > * + *::before { margin: 0 5px; }
+html.nbx-on.nbx-mobil .nbx-kort-hoyre {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 8px;
+  padding: 0;
+}
+html.nbx-on.nbx-mobil .nbx-kort-tall { order: 1; flex-wrap: wrap; gap: 4px; }
+html.nbx-on.nbx-mobil .nbx-kort-knapper { order: 2; margin-left: auto; gap: 4px; }
+html.nbx-on.nbx-mobil .nbx-kort a.nbx-ikonknapp { width: 34px; height: 34px; }
+html.nbx-on.nbx-mobil .nbx-kort a.nbx-lastned { margin-left: 2px; padding: 8px 12px; font-size: 13px; }
+html.nbx-on.nbx-mobil .nbx-kort .nbx-tb { padding: 3px 6px; font-size: 12px; gap: 4px; }
+html.nbx-on.nbx-mobil .nbx-kort .nbx-tb svg { width: 12px; height: 12px; }
+html.nbx-on.nbx-mobil .nbx-stor-plakat { display: none !important; }
+
+html.nbx-on.nbx-mobil.nbx-str-kompakt .nbx-kort { grid-template-columns: 44px minmax(0, 1fr); padding: 6px; row-gap: 6px; }
+html.nbx-on.nbx-mobil.nbx-str-kompakt .nbx-kort a.nbx-kort-plakat { width: 44px; height: 66px; }
+html.nbx-on.nbx-mobil.nbx-str-kompakt .nbx-kort a.nbx-kort-navn { font-size: 13.5px; }
+html.nbx-on.nbx-mobil.nbx-str-mini .nbx-kort { grid-template-columns: 32px minmax(0, 1fr); padding: 5px 6px; row-gap: 5px; }
+html.nbx-on.nbx-mobil.nbx-str-mini .nbx-kort a.nbx-kort-plakat { width: 32px; height: 48px; }
+html.nbx-on.nbx-mobil.nbx-str-mini .nbx-kort a.nbx-kort-navn { -webkit-line-clamp: 1; line-clamp: 1; font-size: 13px; }
+html.nbx-on.nbx-mobil.nbx-str-mini .nbx-kort-meta { flex-wrap: wrap; }
+
+/* ---------- Torrentsiden ---------- */
+html.nbx-on.nbx-mobil #details { width: auto; }
+html.nbx-on.nbx-mobil #details ul li.title { height: auto; min-height: 26px; }
+html.nbx-on.nbx-mobil #details ul li.item {
+  display: block;
+  width: auto;
+  overflow-x: auto;
+}
+html.nbx-on.nbx-mobil div.ulTables,
+html.nbx-on.nbx-mobil div.ulTable {
+  float: none;
+  display: block;
+  width: auto;
+}
+html.nbx-on.nbx-mobil div.ulTable ul { display: flex; margin: 0; padding: 2px 0; }
+html.nbx-on.nbx-mobil div.ulTable ul li,
+html.nbx-on.nbx-mobil div.ulTables #wide ul li {
+  display: block;
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+  padding: 2px 0;
+  overflow-wrap: anywhere;
+}
+html.nbx-on.nbx-mobil div.ulTable ul li:first-child,
+html.nbx-on.nbx-mobil div.ulTables #wide ul li:first-child {
+  flex: 0 0 104px;
+  width: auto;
+  padding-right: 8px;
+  text-align: left;
+}
+
+/* Plakat-toppen: liten plakat til venstre, handlingen flyter rundt og under */
+html.nbx-on.nbx-mobil .nbx-hero {
+  display: block;
+  width: auto !important;
+  min-height: 0;
+  margin: 4px 0 10px;
+  padding: 12px;
+}
+html.nbx-on.nbx-mobil .nbx-hero-poster {
+  float: left;
+  width: 96px;
+  margin: 0 12px 8px 0;
+}
+html.nbx-on.nbx-mobil .nbx-hero-main { display: block; }
+html.nbx-on.nbx-mobil .nbx-hero-main > * + * { margin-top: 7px; }
+html.nbx-on.nbx-mobil .nbx-hero-title { font-size: 19px; }
+html.nbx-on.nbx-mobil .nbx-hero-year { font-size: 15px; }
+html.nbx-on.nbx-mobil .nbx-hero-status { font-size: 13px; }
+html.nbx-on.nbx-mobil .nbx-hero-status > span + span::before { margin: 0 6px; }
+html.nbx-on.nbx-mobil .nbx-hero p.nbx-hero-plot { font-size: 13.5px; line-height: 1.55; }
+html.nbx-on.nbx-mobil .nbx-hero-foot {
+  clear: both;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 0;
+}
+html.nbx-on.nbx-mobil .nbx-hero a.nbx-hero-dl { padding: 9px 16px; }
+
+/* ---------- Forum og kommentarer ---------- */
+html.nbx-on.nbx-mobil :is(.comments, .forumposts, .quickreply, h1.quickreply, .addcomment div.right) { width: auto; }
+html.nbx-on.nbx-mobil .comments { padding: 6px 0; }
+html.nbx-on.nbx-mobil h1.comment {
+  white-space: normal;
+  padding: 6px 4px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+html.nbx-on.nbx-mobil .wrapcomment div.avatar {
+  float: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: auto;
+  padding: 6px 8px;
+  border-right: 0;
+  border-bottom: 1px solid rgba(127, 127, 127, .25);
+}
+html.nbx-on.nbx-mobil .wrapcomment div.avatar > a { flex: none; }
+html.nbx-on.nbx-mobil .avatar img.avatar {
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+html.nbx-on.nbx-mobil .avatar div.stats { padding: 0; font-size: 11.5px; line-height: 1.45; }
+html.nbx-on.nbx-mobil .avatar div.stats br { display: none; }
+html.nbx-on.nbx-mobil .avatar div.stats > * { margin-right: 6px; }
+html.nbx-on.nbx-mobil .wrapcomment div.comment {
+  margin-left: 0;
+  padding: 10px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+html.nbx-on.nbx-mobil .quickreply textarea { width: 100%; }
+html.nbx-on.nbx-mobil .quickreply div.left { display: none; }
+html.nbx-on.nbx-mobil .previewcomment { min-width: 0; }
+html.nbx-on.nbx-mobil div.textbbcode .textarea textarea { width: 100%; }
+html.nbx-on.nbx-mobil .smilielist { margin-left: 0; }
+
+/* ---------- Forsiden ---------- */
+html.nbx-on.nbx-mobil #content table.stats {
+  float: none !important;
+  width: 100% !important;
+  margin: 0 0 10px !important;
+}
+
+/* ---------- Forumtabellene som kort (mobil.js setter nbx-kortbord) ----------
+   Én boks per forum/emne: navnet og beskrivelsen øverst, tallene under med
+   kolonneoverskriften som etikett, og «Siste innlegg» på en egen linje. */
+html.nbx-on.nbx-mobil table.nbx-kortbord {
+  display: block;
+  width: auto !important;
+  margin: 8px 0 14px;
+  border: 1px solid rgba(127, 127, 127, .35);
+  border-radius: 6px;
+  overflow: hidden;
+}
+html.nbx-on.nbx-mobil table.nbx-kortbord > :is(tbody, thead) { display: block; }
+html.nbx-on.nbx-mobil table.nbx-kortbord tr {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 3px 12px;
+  padding: 9px 10px;
+  border-top: 1px solid rgba(127, 127, 127, .25);
+}
+html.nbx-on.nbx-mobil table.nbx-kortbord tr:first-child { border-top: 0; }
+html.nbx-on.nbx-mobil table.nbx-kortbord :is(td, th) {
+  display: block;
+  width: auto !important;
+  min-width: 0;
+  height: auto;
+  padding: 0;
+  border: 0;
+  white-space: normal;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+html.nbx-on.nbx-mobil table.nbx-kortbord td { font-size: 12.5px; line-height: 1.45; }
+html.nbx-on.nbx-mobil table.nbx-kortbord td:first-child { flex: 1 1 100%; font-size: 14.5px; line-height: 1.4; }
+html.nbx-on.nbx-mobil table.nbx-kortbord td:first-child > br { display: none; }
+html.nbx-on.nbx-mobil table.nbx-kortbord td:first-child > span {
+  display: block;
+  margin-top: 1px;
+  font-size: 12.5px;
+  opacity: .8;
+}
+html.nbx-on.nbx-mobil table.nbx-kortbord td:first-child img { vertical-align: middle; }
+html.nbx-on.nbx-mobil table.nbx-kortbord td[data-nbx-etikett]::before {
+  content: attr(data-nbx-etikett) ": ";
+  opacity: .65;
+}
+html.nbx-on.nbx-mobil table.nbx-kortbord td.nbx-hel { flex-basis: 100%; }
+html.nbx-on.nbx-mobil table.nbx-kortbord tr:is(.nbx-kb-hode, .nbx-kb-seksjon) { padding: 0; }
+html.nbx-on.nbx-mobil table.nbx-kortbord tr:is(.nbx-kb-hode, .nbx-kb-seksjon) th {
+  flex: 1 1 100%;
+  padding: 7px 10px;
+  font-size: 12.5px;
+}
+html.nbx-on.nbx-mobil table.nbx-kortbord tr.nbx-kb-hode th:not(:first-child),
+html.nbx-on.nbx-mobil table.nbx-kortbord tr.nbx-kb-tom { display: none; }
+
+/* ---------- NFO-linjene i beskrivelsen (mobil.js deler dem opp) ---------- */
+html.nbx-on.nbx-mobil #details li.item > span[data-nbx-linjer] { display: block; }
+html.nbx-on.nbx-mobil .nbx-nfo-linje {
+  display: block;
+  min-height: 1.5em;
+  overflow-wrap: anywhere;
+}
+html.nbx-on.nbx-mobil .nbx-nfo-linje > br { display: none; }
+html.nbx-on.nbx-mobil .nbx-nfo-kunst {
+  min-height: 1.2em;
+  white-space: nowrap;
+  overflow-wrap: normal;
+  font-size: var(--nbx-kunst, inherit);
+  line-height: 1.2;
+}
+html.nbx-on.nbx-mobil .nbx-nfo-skille {
+  white-space: nowrap;
+  overflow: hidden;
+  overflow-wrap: normal;
+}
+
+/* ---------- Filtrene i søkeboksen bak en knapp ---------- */
+.nbx-filtreknapp { display: none; }
+html.nbx-on.nbx-mobil form.nbx-filtre-lukket > div.searchbox:not(.searchstr) { display: none; }
+html.nbx-on.nbx-mobil form.nbx-filtre-lukket > div.searchbox.searchstr {
+  border-top: 1px solid rgba(127, 127, 127, .35) !important;
+}
+html.nbx-on.nbx-mobil .nbx-filtreknapp {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+  min-height: 34px;
+  margin: 0;
+  padding: 0 11px;
+  border: 1px solid rgba(127, 127, 127, .55);
+  border-radius: 4px;
+  background: rgba(127, 127, 127, .12);
+  color: inherit;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+html.nbx-on.nbx-mobil .nbx-filtreknapp::after { content: "▾"; font-size: 12px; }
+html.nbx-on.nbx-mobil form.nbx-filtre:not(.nbx-filtre-lukket) .nbx-filtreknapp::after { content: "▴"; }
+
+/* Ikonknappene på kortene: alt-teksten skal ikke flyte ut om et bilde mangler */
+html.nbx-on.nbx-mobil .nbx-kort a.nbx-ikonknapp { overflow: hidden; }

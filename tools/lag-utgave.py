@@ -22,7 +22,7 @@ import argparse, json, pathlib, re, shutil, sys, zipfile
 
 ROT = pathlib.Path(__file__).resolve().parent.parent
 MED = ['manifest.json', 'background.js', 'justeringer.js', 'justeringer.css', 'tema-mork.css', 'plakat.js', 'plakat.css',
-       'liste.js', 'liste.css', 'popup.html', 'popup.js']
+       'liste.js', 'liste.css', 'mobil.js', 'mobil.css', 'popup.html', 'popup.js']
 MAPPER = ['icons']
 
 

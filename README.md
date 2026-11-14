@@ -1,6 +1,6 @@
 # Designupgrade
 
-Små designjusteringer i Firefox. Torrentsiden får plakat, handling og sjangre fra TMDB, og torrentlistene får kortvisning med plakater og flagg for lyd og nordiske undertekster. Topp 10 får samme kortvisning, og hele siden kan få mørk modus (basert på tavi206 sitt tema). Alt kan skrus av med ett klikk.
+Små designjusteringer i Firefox. Torrentsiden får plakat, handling og sjangre fra TMDB, og torrentlistene får kortvisning med plakater og flagg for lyd og nordiske undertekster. Topp 10 får samme kortvisning, og hele siden kan få mørk modus (basert på tavi206 sitt tema). På telefon (f.eks. Orion på iPhone) får siden en egen mobilvisning med menyen bak en knapp. Alt kan skrus av med ett klikk.
 
 ## Installere
 

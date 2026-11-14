@@ -32,6 +32,17 @@
     .seg { gap: 6px 12px; flex-wrap: wrap; }
     .seg label { justify-content: flex-start; gap: 5px; }
     .seg input { margin: 0; }
+    @media (pointer: coarse) and (max-width: 600px) {
+      body { width: auto; min-width: 268px; padding: 16px 18px; font-size: 15px; }
+      h1 { font-size: 17px; }
+      h2 { margin-top: 18px; font-size: 14px; }
+      input { width: 20px; height: 20px; }
+      .seg { gap: 10px 18px; }
+      label { min-height: 34px; }
+      #key { padding: 8px 9px; font-size: 16px; }
+      button { padding: 8px 12px; font-size: 14px; }
+      p, .om { font-size: 13px; }
+    }
   </style>
 </head>
 <body>
@@ -44,6 +55,13 @@
     <label><input type="radio" name="morkModus" value="av"> Av</label>
     <label><input type="radio" name="morkModus" value="mork"> Mørk</label>
     <label title="Nesten svart bakgrunn"><input type="radio" name="morkModus" value="morkere"> Enda mørkere</label>
+  </div>
+
+  <h2>Mobilvisning</h2>
+  <div class="row seg" title="Auto: på telefon får siden telefonens bredde, én kolonne og menyen bak en knapp. PC og nettbrett ser ut som før. Alltid: også på PC og nettbrett, f.eks. for å prøve den i et smalt vindu.">
+    <label><input type="radio" name="mobil" value="auto"> Auto (på telefon)</label>
+    <label><input type="radio" name="mobil" value="alltid"> Alltid</label>
+    <label><input type="radio" name="mobil" value="av"> Av</label>
   </div>
 
   <h2>Torrentliste</h2>
