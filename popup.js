@@ -3,7 +3,7 @@ const $ = (id) => document.getElementById(id);
 const msg = (text, cls = '') => { $('msg').textContent = text; $('msg').className = cls; };
 
 const box = $('enabled');
-const VALG = { visning: 'kort', kortStr: 'normal', mobil: 'auto' };
+const VALG = { visning: 'kort', kortStr: 'normal' };
 const skjulBokser = [...document.querySelectorAll('input[name="skjulSprak"]')];
 api.storage.local.get({ enabled: true, morktTema: false, morkModus: '', skjulSprak: [], tmdbKey: '', ...VALG }).then((v) => {
   const { enabled, tmdbKey } = v;

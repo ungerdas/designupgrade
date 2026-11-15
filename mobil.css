@@ -98,18 +98,11 @@ html.nbx-on.nbx-mobil #header_toolbar #userinfo {
   font-size: 12.5px;
   line-height: 1.55;
 }
-html.nbx-on.nbx-mobil #header_toolbar #donate {
-  order: 2;
-  position: static;
-  inset: auto;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 8px;
-  font-size: 12px;
-}
-html.nbx-on.nbx-mobil #header_toolbar #donate img { margin-top: 0 !important; vertical-align: middle; }
+/* Donasjonsraden (knappen og «Du har donert») tar en hel linje på hver side;
+   på mobil skjules den. På PC står den som før. */
+html.nbx-on.nbx-mobil #header_toolbar #donate { display: none; }
 html.nbx-on.nbx-mobil #header_toolbar #connectable { order: 3; position: static; inset: auto; }
+html.nbx-on.nbx-mobil #header_toolbar #connectable.nbx-tom { display: none; }
 html.nbx-on.nbx-mobil #header_toolbar #date { display: none; }
 
 /* Ikonene (varsler, innboks …) øverst til høyre, på samme rad som logoen */
@@ -634,3 +627,97 @@ html.nbx-on.nbx-mobil form.nbx-filtre:not(.nbx-filtre-lukket) .nbx-filtreknapp::
 
 /* Ikonknappene på kortene: alt-teksten skal ikke flyte ut om et bilde mangler */
 html.nbx-on.nbx-mobil .nbx-kort a.nbx-ikonknapp { overflow: hidden; }
+
+/* ---------- Loggen som kort (mobil.js setter nbx-loggliste) ----------
+   Dato og tid på en liten linje øverst, hendelsen under i full bredde. Raden
+   beholder fargen for typen (lastet opp, slettet …); i mørk modus flyttes den
+   fargede stripen fra datocellen til hele kortet. Brukerkolonnen (bare for
+   staben) står til høyre på øverste linje. */
+html.nbx-on.nbx-mobil table.nbx-loggliste {
+  display: block;
+  width: auto !important;
+  border-bottom: 1px solid rgba(127, 127, 127, .35);
+}
+html.nbx-on.nbx-mobil table.nbx-loggliste > :is(tbody, thead) { display: block; }
+html.nbx-on.nbx-mobil table.nbx-loggliste tr:not([class^="log_"]) { display: none; }
+html.nbx-on.nbx-mobil table.nbx-loggliste tr[class^="log_"] {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: baseline;
+  gap: 3px 10px;
+  padding: 8px 10px 9px 12px;
+  border-top: 1px solid rgba(127, 127, 127, .25);
+}
+html.nbx-on.nbx-mobil table.nbx-loggliste td {
+  display: block;
+  width: auto !important;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  text-align: left;
+}
+html.nbx-on.nbx-mobil table.nbx-loggliste td:nth-child(-n+2) {
+  font-size: 12px;
+  opacity: .75;
+  white-space: nowrap;
+}
+html.nbx-on.nbx-mobil table.nbx-loggliste td:nth-child(3) {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  font-size: 13.5px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+html.nbx-on.nbx-mobil table.nbx-loggliste td:nth-child(4) {
+  grid-column: 3;
+  grid-row: 1;
+  justify-self: end;
+  font-size: 12px;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+html.nbx-on.nbx-mobil.nbx-tema-mork table.nbx-loggliste tr.log_uploaded { box-shadow: inset 3px 0 0 var(--accent); }
+html.nbx-on.nbx-mobil.nbx-tema-mork table.nbx-loggliste tr.log_deleted { box-shadow: inset 3px 0 0 var(--accent-red); }
+html.nbx-on.nbx-mobil.nbx-tema-mork table.nbx-loggliste tr.log_edited { box-shadow: inset 3px 0 0 var(--accent-yellow); }
+
+/* Tabeller med få kolonner som bare er for brede på grunn av lange ord */
+html.nbx-on.nbx-mobil table.nbx-bryt :is(td, th) { overflow-wrap: anywhere; }
+
+/* ---------- Ryddig header (mobil.js: ryddHode) ----------
+   Tallene som en rad med små felt i stedet for løpende tekst; hilsenen og
+   «Logg ut» står øverst i menyen. Ikonene uten tall flyttes til menyen. */
+.nbx-mstat { display: none; }
+html:not(.nbx-mobil) #sidebar li.nbx-bare-mobil { display: none !important; }
+html.nbx-on.nbx-mobil #header_toolbar #userinfo { display: none; } /* ikonene og varsellista ligger i samme blokk og skal vises */
+html.nbx-on.nbx-mobil #header_toolbar #icons a.icon.nbx-ikon-meny { display: none; }
+html.nbx-on.nbx-mobil #header_toolbar { padding: 2px 12px 10px; }
+html.nbx-on.nbx-mobil .nbx-mstat {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 6px 8px;
+  width: 100%;
+}
+html.nbx-on.nbx-mobil .nbx-mstat-felt {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+html.nbx-on.nbx-mobil .nbx-mstat-navn {
+  font-size: 10px;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  opacity: .62;
+}
+html.nbx-on.nbx-mobil .nbx-mstat-verdi {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+html.nbx-on.nbx-mobil #header_logo > a { width: clamp(96px, calc(100vw - 210px), 176px); }

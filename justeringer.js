@@ -5,6 +5,32 @@
 
 (() => {
   'use strict';
+
+  // ---------- iPhone/iPad: ødelagt adresse etter innlogging ----------
+  // Siden sender omdirigeringen etter innlogging to ganger (to like Location-linjer).
+  // Chrome og Firefox bruker én av dem, men WebKit (Safari, Orion og alle nettlesere på
+  // iPhone/iPad) slår dem sammen til «https://siden/, https://siden/» og havner på en
+  // side som ikke finnes. Gjenkjenn det og gå til adressen det gjaldt. Gjelder bare når
+  // hver del etter kommaet selv er en hel adresse på samme side.
+  const omdirigering = (() => {
+    let adr;
+    try { adr = decodeURI(location.href); } catch { return null; }
+    const deler = adr.split(/,\s+/);
+    if (deler.length < 2) return null;
+    const vert = (h) => h.replace(/^www\./, '');
+    const url = [];
+    for (const d of deler) {
+      if (!/^(https?:\/\/|\/)/.test(d)) return null; // vanlig tekst med komma: ikke rør
+      try { url.push(new URL(d, location.origin)); } catch { return null; }
+    }
+    if (url.some((u) => vert(u.hostname) !== vert(location.hostname))) return null;
+    return url[0].href;
+  })();
+  if (omdirigering && omdirigering !== location.href) {
+    location.replace(omdirigering);
+    return;
+  }
+
   const api = globalThis.browser ?? globalThis.chrome;
   const root = document.documentElement;
 

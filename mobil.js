@@ -3,8 +3,8 @@
 // Siden har ingen mobilversjon: på telefon tegnes den 980 px bred og forminskes, så
 // teksten blir knøttliten. Her får siden telefonens egen bredde (viewport), og
 // mobil.css legger alt i én kolonne, med sidemenyen bak en menyknapp øverst.
-// «Auto» gjelder bare telefoner (smal skjerm og berøring); PC og nettbrett ser ut
-// som før. «Alltid» slår den på overalt (f.eks. for å teste i et smalt vindu på PC).
+// Gjelder bare telefoner (smal skjerm og berøring); PC og nettbrett ser ut som før.
+// Den skrus av sammen med resten av justeringene («Justeringer på» i popupen).
 
 (() => {
   'use strict';
@@ -13,10 +13,10 @@
 
   const telefon = Math.min(screen.width, screen.height) <= 600 && matchMedia('(pointer: coarse)').matches;
 
-  // Innstillingen leses asynkront. Siden husker siste valg i localStorage, så den
-  // tegnes riktig med en gang: «av» (eller hele utvidelsen av) og «alltid».
+  // Innstillingen leses asynkront. Siden husker i localStorage om justeringene er
+  // skrudd av, så den tegnes riktig med en gang.
   const HINT = 'nbx-mobil';
-  const valg = { enabled: true, mobil: 'auto' };
+  const valg = { enabled: true };
   let aktiv = false;
   let meta = null;
 
@@ -55,13 +55,12 @@
   }
 
   function oppdater() {
-    const av = valg.enabled === false || valg.mobil === 'av';
-    const alltid = !av && valg.mobil === 'alltid';
+    const av = valg.enabled === false;
     try {
-      if (av || alltid) localStorage.setItem(HINT, av ? 'av' : 'alltid');
+      if (av) localStorage.setItem(HINT, 'av');
       else localStorage.removeItem(HINT);
     } catch {}
-    bruk(alltid || (telefon && !av));
+    bruk(!av);
   }
 
   // ---------- Sidemenyen bak en menyknapp ----------
@@ -140,6 +139,79 @@
   function hodeFarge() {
     const logo = document.getElementById('header_logo');
     if (logo) root.classList.toggle('nbx-hode-lys', lys(farge(logo).rgb));
+  }
+
+  // ---------- Ryddig header ----------
+  // Hilsenen og tallene står som løpende tekst og brytes tilfeldig. På mobil vises
+  // tallene som en rad med små felt (Ratio, Opp, Ned, Aktive, Poeng); navnet og
+  // «Logg ut» står allerede øverst i menyen. Av ikonene blir Varsler, Innboks og
+  // ikoner med et tall på (f.eks. svar i Supportboks) stående øverst; resten blir
+  // punkter i menyen, om de ikke finnes der fra før. Alt dette gjelder bare mobil.
+  const BEHOLD = /^\/?(notifications\.php|inbox\.php)$/;
+  function ryddHode() {
+    const verktøy = document.getElementById('header_toolbar');
+    const info = document.getElementById('userinfo');
+    if (!verktøy || !info || verktøy.querySelector('.nbx-mstat')) return;
+
+    const rad = document.createElement('div');
+    rad.className = 'nbx-mstat';
+    const felt = (navn, verdi, href) => {
+      if (!verdi) return;
+      const f = document.createElement(href ? 'a' : 'div');
+      f.className = 'nbx-mstat-felt';
+      if (href) f.href = href;
+      const n = document.createElement('span');
+      n.className = 'nbx-mstat-navn';
+      n.textContent = navn;
+      const v = document.createElement('span');
+      v.className = 'nbx-mstat-verdi';
+      v.append(verdi);
+      f.append(n, v);
+      rad.append(f);
+    };
+    const kopi = (el) => { if (!el) return null; const k = el.cloneNode(true); k.removeAttribute('id'); return k; };
+    const tekst = (el) => (el ? el.textContent.replace(/\s+/g, ' ').trim() : '');
+    felt('Ratio', kopi(info.querySelector('#ratio')));
+    felt('Opp', tekst(info.querySelector('#uped')));
+    felt('Ned', tekst(info.querySelector('#downed')));
+    const opp = tekst(info.querySelector('span[title*="seeder"]'));
+    const ned = tekst(info.querySelector('span[title*="leecher"]'));
+    felt('Aktive', [opp, ned].filter(Boolean).join('  '));
+    const poeng = info.querySelector('a[href*="poeng"]');
+    felt('Poeng', tekst(poeng), poeng?.getAttribute('href'));
+    if (!rad.children.length) return;
+    verktøy.prepend(rad);
+
+    // Ikonene: de som ikke beholdes øverst, blir punkter i menyen
+    const sidebar = document.getElementById('sidebar');
+    const liste = sidebar?.querySelector('ul');
+    const finnes = new Set([...(sidebar?.querySelectorAll('a[href]') || [])].map((a) => a.getAttribute('href').replace(/^\//, '')));
+    const nye = [];
+    for (const a of document.querySelectorAll('#icons a.icon')) {
+      const href = a.getAttribute('href') || '';
+      const tall = a.querySelector('span:not(.hidden)');
+      const harTall = tall && /\d/.test(tall.textContent) && !/^0\b/.test(tall.textContent.trim());
+      if (BEHOLD.test(href) || harTall) continue;
+      a.classList.add('nbx-ikon-meny');
+      if (!finnes.has(href.replace(/^\//, ''))) nye.push([a.title || href, href]);
+    }
+    if (liste && nye.length) {
+      const topp = liste.querySelector(':scope > li.top');
+      const tittel = document.createElement('li');
+      tittel.className = 'title nbx-bare-mobil';
+      tittel.textContent = nye.every(([, h]) => /inbox|support/.test(h)) ? 'Meldinger' : 'Meldinger og lister';
+      const punkter = nye.map(([navn, href]) => {
+        const li = document.createElement('li');
+        li.className = 'item nbx-bare-mobil';
+        const a = document.createElement('a');
+        a.href = href;
+        a.textContent = navn;
+        li.append(a);
+        return li;
+      });
+      if (topp) topp.after(tittel, ...punkter);
+      else liste.prepend(tittel, ...punkter);
+    }
   }
 
   // ---------- Forumtabellene blir kort ----------
@@ -258,19 +330,38 @@
     rad.append(fk);
   }
 
-  // ---------- Brede tabeller ruller sidelengs for seg selv ----------
-  // (i stedet for at hele siden blir bredere enn skjermen)
+  // ---------- Loggen blir kort ----------
+  // Én boks per hendelse: dato og tid på en liten linje øverst, hendelsen under i
+  // full bredde (lange releasenavn brytes). Radtypen (lastet opp, slettet …) beholder
+  // fargen sin. Brukerkolonnen (bare for staben) står til høyre på øverste linje.
+  function loggliste() {
+    for (const tr of document.querySelectorAll('#content table:not(.nbx-loggliste) tr[class^="log_"]')) {
+      tr.closest('table').classList.add('nbx-loggliste');
+    }
+  }
+
+  // ---------- Brede tabeller ----------
+  // En tabell med få kolonner som bare er for bred på grunn av lange ord (releasenavn)
+  // får bryte ordene. Ellers ruller tabellen sidelengs for seg selv, i stedet for at
+  // hele siden blir bredere enn skjermen.
   function rullTabeller() {
     if (!aktiv) return;
     const content = document.getElementById('content');
     if (!content) return;
     kortbord();
+    loggliste();
     nfoLinjer();
     filtre();
     for (const t of content.querySelectorAll('table')) {
       const f = t.parentElement;
-      if (!f || t.classList.contains('nbx-kortbord') || f.classList.contains('nbx-rull') || f.closest('table')) continue;
+      if (!f || t.classList.contains('nbx-kortbord') || t.classList.contains('nbx-loggliste') || f.classList.contains('nbx-rull') || f.closest('table')) continue;
       if (t.offsetWidth <= f.clientWidth + 1) continue;
+      const kolonner = Math.max(0, ...[...t.rows].slice(0, 5).map((r) => [...r.cells].reduce((n, c) => n + c.colSpan, 0)));
+      if (kolonner <= 4) {
+        t.classList.add('nbx-bryt');
+        if (t.offsetWidth <= f.clientWidth + 1) continue;
+        t.classList.remove('nbx-bryt');
+      }
       const rull = document.createElement('div');
       rull.className = 'nbx-rull';
       t.before(rull);
@@ -287,7 +378,11 @@
     if (klar) return;
     klar = true;
     lagMeny();
+    ryddHode();
     hodeFarge();
+    // Raden for tilkoblingsstatus inneholder bare &nbsp; når alt er i orden: skjul den da
+    const tilk = document.getElementById('connectable');
+    if (tilk && !tilk.textContent.trim() && !tilk.querySelector('img, a')) tilk.classList.add('nbx-tom');
     rullTabeller();
     // Mørk modus av/på bytter tema mens siden er åpen
     new MutationObserver(hodeFarge).observe(root, { attributes: true, attributeFilter: ['class'] });
@@ -298,14 +393,18 @@
   }
   // ---------- Oppstart ----------
   // Står til slutt, så alt over er klart også om skriptet kjøres etter at siden er lastet
+  // PC og nettbrett: ingenting å gjøre (og et merke fra en eldre versjon ryddes bort)
+  if (!telefon) {
+    try { if (localStorage.getItem(HINT)) localStorage.removeItem(HINT); } catch {}
+    return;
+  }
   let hint = null;
   try { hint = localStorage.getItem(HINT); } catch {}
-  bruk(hint === 'alltid' || (telefon && hint !== 'av'));
+  bruk(hint !== 'av');
   api.storage.local.get({ ...valg }).then((v) => { Object.assign(valg, v); oppdater(); }).catch(() => {});
   api.storage.onChanged.addListener((ch, area) => {
-    if (area !== 'local' || !(ch.enabled || ch.mobil)) return;
-    if (ch.enabled) valg.enabled = ch.enabled.newValue;
-    if (ch.mobil) valg.mobil = ch.mobil.newValue;
+    if (area !== 'local' || !ch.enabled) return;
+    valg.enabled = ch.enabled.newValue;
     oppdater();
   });
   if (document.readyState === 'loading') {
