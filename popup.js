@@ -5,9 +5,11 @@ const msg = (text, cls = '') => { $('msg').textContent = text; $('msg').classNam
 const box = $('enabled');
 const VALG = { visning: 'kort', kortStr: 'normal' };
 const skjulBokser = [...document.querySelectorAll('input[name="skjulSprak"]')];
-api.storage.local.get({ enabled: true, morktTema: false, morkModus: '', skjulSprak: [], tmdbKey: '', ...VALG }).then((v) => {
+api.storage.local.get({ enabled: true, morktTema: false, morkModus: '', skjulSprak: [], tmdbKey: '', musikk: true, lydbok: true, ...VALG }).then((v) => {
   const { enabled, tmdbKey } = v;
   box.checked = enabled;
+  $('musikk').checked = v.musikk !== false;
+  $('lydbok').checked = v.lydbok !== false;
   skjulBokser.forEach((b) => { b.checked = (v.skjulSprak || []).includes(b.value); });
   // Mørk modus: Av, Mørk eller Enda mørkere (eldre innstillinger har bare morktTema)
   const modus = v.morktTema ? (v.morkModus === 'morkere' ? 'morkere' : 'mork') : 'av';
@@ -19,6 +21,8 @@ api.storage.local.get({ enabled: true, morktTema: false, morkModus: '', skjulSpr
   if (tmdbKey) msg('Nøkkel er lagret.', 'ok');
 });
 box.addEventListener('change', () => api.storage.local.set({ enabled: box.checked }));
+$('musikk').addEventListener('change', (e) => api.storage.local.set({ musikk: e.target.checked }));
+$('lydbok').addEventListener('change', (e) => api.storage.local.set({ lydbok: e.target.checked }));
 document.querySelectorAll('input[name="morkModus"]').forEach((r) => r.addEventListener('change', () => {
   api.storage.local.set({ morkModus: r.value, morktTema: r.value !== 'av' });
 }));

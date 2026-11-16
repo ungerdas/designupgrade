@@ -157,6 +157,7 @@ html:not(.nbx-on) .nbx-sorter { display: none !important; }
 .nbx-kort-meta a.nbx-rating { color: #9a7400 !important; font-weight: 700; text-decoration: none !important; }
 .nbx-kort-meta .nbx-kat { font-weight: 700; }
 .nbx-kort-meta .nbx-status { color: #b35900; font-weight: 700; }
+.nbx-kort-meta .nbx-hdr { color: #7a4fb0; font-weight: 700; }
 .nbx-kort-l3 { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; min-height: 16px; }
 .nbx-kort-l3:empty { display: none; }
 .nbx-kort .nbx-sjangre { font-size: 12px; color: #777; }
@@ -267,6 +268,7 @@ html.nbx-mork .nbx-kort-meta > * + *::before { color: #6f6a62; }
 html.nbx-mork .nbx-kort-meta .nbx-ny { color: #ff6b6b; }
 html.nbx-mork .nbx-kort-meta a.nbx-rating { color: #f2c94c !important; }
 html.nbx-mork .nbx-kort-meta .nbx-status { color: #f0a050; }
+html.nbx-mork .nbx-kort-meta .nbx-hdr { color: #c9a6ff; }
 html.nbx-mork .nbx-kort-meta a.nbx-opplaster { color: #9ec3ea !important; }
 html.nbx-mork .nbx-kort-meta .nbx-alder,
 html.nbx-mork .nbx-kort .nbx-sjangre,
@@ -421,3 +423,37 @@ html.nbx-skjul-fi .nbx-vis-skjulte > [data-nbx-sprak~="fi"] {
 .nbx-skjult-info a { color: inherit; text-decoration: underline; cursor: pointer; }
 html.nbx-bg-mork .nbx-skjult-info { color: #9d978c; }
 html.nbx-tema-mork .nbx-skjult-info { color: var(--text-muted, #7a8099); }
+
+/* ---------- «Alternativer» på torrentsiden ----------
+   Andre utgaver av samme tittel: kort uten plakat (plakaten står øverst på siden),
+   så oppløsning, kodek, kilde, HDR, størrelse og seedere står tydelig fram. */
+.nbx-kortliste.nbx-alt { max-width: none; margin: 4px 0; }
+.nbx-kortliste.nbx-alt .nbx-kort { grid-template-columns: minmax(0, 1fr) auto; padding-left: 10px; }
+.nbx-kortliste.nbx-alt .nbx-kort a.nbx-kort-plakat { display: none; }
+
+/* ---------- Musikk: kvadratisk cover (Deezer/MusicBrainz) ----------
+   Coveret står midt i plakatfeltet, med det samme coveret uskarpt bak,
+   så musikk-kortene får samme høyde som resten. */
+.nbx-kort a.nbx-kort-plakat.nbx-kvadrat,
+html.nbx-on table.nbx-list td.nbx-catcell.nbx-has-poster a.nbx-thumb.nbx-kvadrat {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: #15171c;
+}
+.nbx-kort a.nbx-kort-plakat.nbx-kvadrat::before,
+table.nbx-list a.nbx-thumb.nbx-kvadrat::before {
+  content: "";
+  position: absolute;
+  inset: -10px;
+  background: var(--cover) center / cover no-repeat;
+  filter: blur(9px) brightness(.7);
+}
+.nbx-kort a.nbx-kort-plakat.nbx-kvadrat img,
+table.nbx-list a.nbx-thumb.nbx-kvadrat img {
+  position: relative;
+  height: auto;
+  aspect-ratio: 1;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .5);
+}
+.nbx-stor-plakat.nbx-kvadrat { width: 300px; height: 300px; }

@@ -76,6 +76,10 @@
     <label><input type="checkbox" name="skjulSprak" value="fi"> Finske</label>
   </div>
 
+  <h2>Musikk og lydbøker</h2>
+  <label title="Cover, spor, spilletid og sjangre for torrenter i kategorien Musikk. Artist og albumtittel fra releasenavnet sendes til Deezer (og MusicBrainz når Deezer ikke har albumet).">Cover og albuminfo fra Deezer <input type="checkbox" id="musikk"></label>
+  <label title="Omslag, omtale, sjangre, forlag og oppleser for torrenter i kategorien Lydbøker. Forfatter og tittel fra releasenavnet sendes til Nasjonalbiblioteket.">Omslag og omtale fra Nasjonalbiblioteket <input type="checkbox" id="lydbok"></label>
+
   <h2>TMDB-nøkkel (plakat og handling)</h2>
   <div class="row">
     <input id="key" type="password" placeholder="API Key eller Read Access Token" autocomplete="off" spellcheck="false">
@@ -86,8 +90,8 @@
     <button id="clear" class="ghost" style="margin-top:6px">Tøm buffer</button></p>
 
   <h2>Om</h2>
-  <p class="om">Designupgrade henter titler, plakater og handling fra The Movie Database.
-    Navn og IMDb-id fra siden sendes til TMDB for å finne riktig tittel; ingenting annet sendes noe sted.</p>
+  <p class="om">Designupgrade henter titler, plakater og handling fra The Movie Database, cover og albuminfo for musikk fra Deezer og MusicBrainz, og omslag og omtale for lydbøker fra Nasjonalbiblioteket.
+    Navn og IMDb-id fra siden sendes til TMDB, artist og albumtittel til Deezer/MusicBrainz og forfatter og tittel til Nasjonalbiblioteket, for å finne riktig utgivelse; ingenting annet sendes noe sted.</p>
   <a class="tmdb" href="https://www.themoviedb.org/" target="_blank" rel="noopener"><img src="icons/tmdb.svg" alt="TMDB"></a>
   <p class="om">This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
   <script src="popup.js"></script>

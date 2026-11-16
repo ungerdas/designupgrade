@@ -468,6 +468,11 @@ html.nbx-on.nbx-mobil .nbx-hero-foot {
   margin-top: 0;
 }
 html.nbx-on.nbx-mobil .nbx-hero a.nbx-hero-dl { padding: 9px 16px; }
+html.nbx-on.nbx-mobil .nbx-hero.nbx-musikk .nbx-hero-poster { width: 110px; }
+html.nbx-on.nbx-mobil .nbx-hero-artist { font-size: 13px; }
+html.nbx-on.nbx-mobil .nbx-hero-undertittel { font-size: 14px; }
+html.nbx-on.nbx-mobil .nbx-hero-spor { clear: both; padding-top: 2px; }
+html.nbx-on.nbx-mobil .nbx-hero ol.nbx-spor { columns: 1; font-size: 13px; }
 
 /* ---------- Forum og kommentarer ---------- */
 html.nbx-on.nbx-mobil :is(.comments, .forumposts, .quickreply, h1.quickreply, .addcomment div.right) { width: auto; }
@@ -721,3 +726,6 @@ html.nbx-on.nbx-mobil .nbx-mstat-verdi {
   white-space: nowrap;
 }
 html.nbx-on.nbx-mobil #header_logo > a { width: clamp(96px, calc(100vw - 210px), 176px); }
+
+/* «Alternativer» på torrentsiden: kortene har ingen plakat (se liste.css) */
+html.nbx-on.nbx-mobil .nbx-kortliste.nbx-alt .nbx-kort { grid-template-columns: minmax(0, 1fr); padding-left: 10px; }

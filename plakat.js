@@ -4,6 +4,10 @@
 //    (detaljsiden viser den ikke).
 // 2) På detaljsiden vises en toppdel med plakat, tittel, år, status,
 //    rating, sjangre, ID-er og handling fra TMDB (krever TMDB-nøkkel).
+// 3) For musikk: cover, type, spor, spilletid, plateselskap, sjangre og
+//    sporliste fra Deezer eller MusicBrainz (ingen nøkkel).
+// 4) For lydbøker: omslag, forfatter, oppleser, forlag, sjangre og omtale
+//    fra Nasjonalbiblioteket (ingen nøkkel).
 
 (() => {
   'use strict';
@@ -144,6 +148,136 @@
     else plot.remove();
   }
 
+  // ---------- 3) Musikk ----------
+  const MUSIKK_TYPE = { album: 'Album', singel: 'Singel', ep: 'EP', samling: 'Samlealbum', diskografi: 'Diskografi' };
+  const lengde = (sek) => {
+    const min = Math.round((sek || 0) / 60);
+    return !min ? '' : min >= 60 ? `${Math.floor(min / 60)} t ${min % 60} min` : `${min} min`;
+  };
+  const mmss = (sek) => (sek ? `${Math.floor(sek / 60)}:${String(sek % 60).padStart(2, '0')}` : '');
+
+  // ferdig = false: søketreffet er klart (cover og tittel), detaljene hentes fortsatt.
+  // Kalles to ganger da, så alt her må tåle å kjøres på nytt.
+  function fyllMusikk(hero, m, navn, ferdig = true) {
+    hero.classList.toggle('nbx-loading', !ferdig);
+    const t = m.tolket || {};
+    const funnet = m.source === 'deezer' || m.source === 'musicbrainz';
+    const artistSide = funnet ? m.kind === 'artist' : t.type === 'diskografi'; // diskografi: artisten
+    const artist = funnet ? m.artist : t.va ? 'Diverse artister' : t.artist;
+    const tittel = (artistSide ? artist : funnet ? m.title : t.album) || navn;
+    const år = artistSide ? '' : (funnet && m.year) || t.year;
+    settHtml(hero.querySelector('.nbx-hero-title'),
+      `${!artistSide && artist ? `<span class="nbx-hero-artist">${esc(artist)}</span>` : ''}${esc(tittel)}${år ? ` <span class="nbx-hero-year">(${esc(år)})</span>` : ''}`);
+
+    // Coveret (og et uskarpt cover bak) når bildet faktisk finnes: MusicBrainz har ikke alltid cover
+    const poster = hero.querySelector('.nbx-hero-poster');
+    if (funnet && m.cover && poster.dataset.cover === m.cover) {
+      // samme cover som i første runde
+    } else if (funnet && m.cover) {
+      poster.dataset.cover = m.cover;
+      const img = new Image();
+      img.alt = '';
+      img.decoding = 'async';
+      img.onload = () => {
+        poster.replaceChildren(img);
+        poster.classList.add('nbx-has-img');
+        const bg = hero.querySelector('.nbx-hero-bg');
+        bg.style.backgroundImage = `url("${img.src.replace(/["\\]/g, '')}")`;
+        bg.classList.add('nbx-blur');
+      };
+      img.onerror = () => {
+        if (m.coverFull && img.src !== m.coverFull) img.src = m.coverFull; // miniatyren mangler hos Cover Art Archive
+        else poster.classList.add('nbx-noimg');
+      };
+      img.src = m.cover;
+    } else {
+      poster.classList.add('nbx-noimg');
+    }
+
+    const linje = [];
+    const type = artistSide ? 'diskografi' : (funnet && m.type) || t.type;
+    if (MUSIKK_TYPE[type]) linje.push(`<b>${MUSIKK_TYPE[type]}</b>`);
+    if (funnet && artistSide) {
+      if (m.albums) linje.push(`${esc(m.albums)} utgivelser på Deezer`);
+      if (m.fans) linje.push(`${esc(Number(m.fans).toLocaleString('nb-NO'))} fans`);
+    } else if (funnet) {
+      if (m.tracks) linje.push(`${esc(m.tracks)} spor`);
+      if (m.duration) linje.push(lengde(m.duration));
+      if (m.label && !/^\[.*\]$/.test(m.label)) linje.push(`<span title="Plateselskap">${esc(m.label)}</span>`);
+    }
+    settHtml(hero.querySelector('.nbx-hero-status'), linje.map((x) => `<span>${x}</span>`).join(''));
+
+    const badges = (funnet ? m.genres || [] : []).map((g) => `<span class="nbx-b nbx-b-genre">${esc(g)}</span>`);
+    if (m.source === 'deezer') badges.push(idBadge('deezer', 'Deezer', artistSide ? 'Artisten' : 'Hør', m.link));
+    if (m.source === 'musicbrainz') badges.push(idBadge('mb', 'MusicBrainz', 'Utgivelsen', m.link));
+    settHtml(hero.querySelector('.nbx-hero-badges'), badges.join(''));
+
+    // Sporliste (album) eller albumliste (diskografi). Lange lister viser de første 12.
+    const plot = hero.querySelector('.nbx-hero-plot, .nbx-hero-spor');
+    const liste = !funnet ? [] : artistSide ? m.album || [] : (m.spor || []).map(([n, sek]) => [n, mmss(sek)]);
+    if (!liste.length) { if (ferdig) plot?.remove(); return; }
+    const vis = liste.length > 16 ? 12 : liste.length;
+    const boks = document.createElement('div');
+    boks.className = 'nbx-hero-spor';
+    settHtml(boks, `<ol class="nbx-spor${artistSide ? ' nbx-albumliste' : ''}">${liste.map(([n, x], i) =>
+      `<li${i >= vis ? ' class="nbx-ekstra"' : ''}><span>${esc(n)}</span>${x ? `<i>${esc(x)}</i>` : ''}</li>`).join('')}</ol>`);
+    if (vis < liste.length) {
+      const knapp = document.createElement('button');
+      knapp.type = 'button';
+      knapp.className = 'nbx-vis-alle';
+      knapp.textContent = `Vis alle ${liste.length} ${artistSide ? 'album' : 'spor'}`;
+      knapp.addEventListener('click', () => { boks.classList.add('nbx-alle'); knapp.remove(); });
+      boks.append(knapp);
+    }
+    plot ? plot.replaceWith(boks) : hero.querySelector('.nbx-hero-badges').after(boks);
+  }
+
+  // ---------- 4) Lydbøker ----------
+  // Som fyllMusikk: kalles først med søketreffet (ferdig = false), så med detaljene.
+  function fyllBok(hero, b, navn, ferdig = true) {
+    hero.classList.toggle('nbx-loading', !ferdig);
+    const t = b.tolket || {};
+    const funnet = b.source === 'nb';
+    const forfatter = funnet ? b.author : t.author;
+    const tittel = (funnet ? b.title : t.title) || navn;
+    const under = funnet ? b.subtitle : '';
+    const år = (funnet && b.year) || t.year;
+    settHtml(hero.querySelector('.nbx-hero-title'),
+      `${forfatter ? `<span class="nbx-hero-artist">${esc(forfatter)}</span>` : ''}${esc(tittel)}${under ? `<span class="nbx-hero-undertittel">: ${esc(under)}</span>` : ''}${år ? ` <span class="nbx-hero-year">(${esc(år)})</span>` : ''}`);
+
+    const poster = hero.querySelector('.nbx-hero-poster');
+    if (funnet && b.cover && poster.dataset.cover !== b.cover) {
+      poster.dataset.cover = b.cover;
+      const img = new Image();
+      img.alt = '';
+      img.decoding = 'async';
+      img.onload = () => {
+        poster.replaceChildren(img);
+        poster.classList.add('nbx-has-img');
+        const bg = hero.querySelector('.nbx-hero-bg');
+        bg.style.backgroundImage = `url("${img.src.replace(/["\\]/g, '')}")`;
+        bg.classList.add('nbx-blur');
+      };
+      img.onerror = () => poster.classList.add('nbx-noimg');
+      img.src = b.cover;
+    } else if (!funnet || !b.cover) {
+      poster.classList.add('nbx-noimg');
+    }
+
+    const linje = ['<b>Lydbok</b>'];
+    if (funnet && b.narrator) linje.push(`Lest av ${esc(b.narrator)}`);
+    if (funnet && b.publisher) linje.push(`<span title="Forlag">${esc(b.publisher)}</span>`);
+    settHtml(hero.querySelector('.nbx-hero-status'), linje.map((x) => `<span>${x}</span>`).join(''));
+
+    const badges = (funnet ? b.genres || [] : []).map((g) => `<span class="nbx-b nbx-b-genre">${esc(g)}</span>`);
+    if (funnet) badges.push(idBadge('nb', 'Nasjonalbiblioteket', 'Boka', b.link));
+    settHtml(hero.querySelector('.nbx-hero-badges'), badges.join(''));
+
+    const plot = hero.querySelector('.nbx-hero-plot');
+    if (plot && funnet && b.summary) plot.textContent = b.summary;
+    else if (plot && ferdig) plot.remove();
+  }
+
   NBX.liste.push({
     navn: 'Plakat og handling på torrentsiden',
     sider: ['details'],
@@ -156,6 +290,8 @@
       const name = txt(h2);
       const rel = fraNavn(name);
       const inf = info(details);
+      const erMusikk = /^musikk$/i.test(inf['kategori'] || '');
+      const erLydbok = /^lydb/i.test(inf['kategori'] || '');
       const dl = details.querySelector('a[href*="download.php"]');
       const peers = txt([...details.querySelectorAll('li.title')].find((li) => /seedere?/i.test(txt(li))));
       const seed = (peers.match(/(\d+)\s*seedere?/i) || [])[1];
@@ -169,12 +305,12 @@
       ].filter(Boolean).join('');
 
       const hero = document.createElement('section');
-      hero.className = 'nbx-hero nbx-loading';
+      hero.className = 'nbx-hero nbx-loading' + (erMusikk ? ' nbx-musikk' : erLydbok ? ' nbx-bok' : '');
       settHtml(hero, `
         <div class="nbx-hero-bg"></div>
         <div class="nbx-hero-poster"><span>${esc(inf['kategori'] || '')}</span></div>
         <div class="nbx-hero-main">
-          <div class="nbx-hero-title">${esc(rel.title)}${rel.year ? ` <span class="nbx-hero-year">(${esc(rel.year)})</span>` : ''}</div>
+          <div class="nbx-hero-title">${erMusikk || erLydbok ? '' : `${esc(rel.title)}${rel.year ? ` <span class="nbx-hero-year">(${esc(rel.year)})</span>` : ''}`}</div>
           <div class="nbx-hero-status"></div>
           <div class="nbx-hero-badges"></div>
           <p class="nbx-hero-plot"></p>
@@ -191,6 +327,29 @@
       // Samme bredde som tabellene under (#details er smalere enn rammen rundt)
       const w = details.getBoundingClientRect().width;
       if (w > 400) hero.style.width = Math.round(w) + 'px';
+
+      if (erMusikk) {
+        // Først søket (cover og tittel kommer raskt), så detaljene (spor, sjangre, plateselskap)
+        const spør = (detaljer) => api.runtime.sendMessage({ type: 'musikk', navn: name, detaljer }).then((m) => (m && !m.error ? m : null), () => null);
+        let m = await spør(false);
+        if (m && (m.source === 'deezer' || m.source === 'musicbrainz') && !m.detaljer) {
+          fyllMusikk(hero, m, name, false);
+          m = (await spør(true)) || m;
+        }
+        fyllMusikk(hero, m || { source: 'none' }, name);
+        return;
+      }
+      if (erLydbok) {
+        // Først søket (omslag, tittel og forfatter), så omtale, sjangre og oppleser
+        const spør = (detaljer) => api.runtime.sendMessage({ type: 'lydbok', navn: name, detaljer }).then((b) => (b && !b.error ? b : null), () => null);
+        let b = await spør(false);
+        if (b && b.source === 'nb' && !b.detaljer) {
+          fyllBok(hero, b, name, false);
+          b = (await spør(true)) || b;
+        }
+        fyllBok(hero, b || { source: 'none' }, name);
+        return;
+      }
 
       const imdb = await finnImdb(tid, name);
       let film = null;

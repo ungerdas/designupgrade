@@ -171,6 +171,64 @@ html.nbx-on .nbx-hero-wrap > h2 { display: none; }
 }
 .nbx-hero.nbx-loading p.nbx-hero-plot:empty { height: 54px; width: 80%; }
 
+/* ---------- Musikk: kvadratisk cover, artisten over tittelen og sporliste ---------- */
+.nbx-hero.nbx-musikk .nbx-hero-poster { width: 220px; aspect-ratio: 1; }
+.nbx-hero.nbx-musikk { min-height: 250px; }
+.nbx-hero-artist {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #c9d6e4;
+}
+.nbx-hero.nbx-loading .nbx-hero-title:empty {
+  height: 26px;
+  width: 45%;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, .12);
+}
+.nbx-hero .nbx-id-deezer i { background: #a238ff; color: #fff; }
+.nbx-hero .nbx-id-mb i { background: #eb743b; color: #fff; }
+/* Lydbøker: undertittelen etter tittelen, Nasjonalbiblioteket-merke */
+.nbx-hero-undertittel { font-weight: 400; font-size: 18px; color: #dbe5ef; }
+.nbx-hero .nbx-id-nb i { background: #111; color: #fff; }
+.nbx-hero-spor { max-width: 900px; }
+.nbx-hero ol.nbx-spor {
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: spor;
+  columns: 2 260px;
+  column-gap: 28px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #e8eef5;
+}
+.nbx-hero ol.nbx-spor li { display: flex; gap: 8px; break-inside: avoid; counter-increment: spor; }
+.nbx-hero ol.nbx-spor li::before {
+  content: counter(spor) ".";
+  flex: none;
+  min-width: 1.7em;
+  text-align: right;
+  color: #aebfd1;
+  font-variant-numeric: tabular-nums;
+}
+.nbx-hero ol.nbx-albumliste li::before { content: none; }
+.nbx-hero ol.nbx-spor li span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nbx-hero ol.nbx-spor li i { flex: none; font-style: normal; color: #aebfd1; font-variant-numeric: tabular-nums; }
+.nbx-hero-spor:not(.nbx-alle) li.nbx-ekstra { display: none; }
+.nbx-hero button.nbx-vis-alle {
+  margin-top: 6px;
+  padding: 2px 10px;
+  border: 1px solid rgba(255, 255, 255, .45);
+  border-radius: 3px;
+  background: rgba(255, 255, 255, .08);
+  color: #fff;
+  font: 700 11px tahoma, arial, helvetica, sans-serif;
+  cursor: pointer;
+}
+.nbx-hero button.nbx-vis-alle:hover { background: rgba(255, 255, 255, .16); }
+
 /* Mørkt tema for hele siden (popupen): toppfeltet følger temaets blågrå farger */
 html.nbx-tema-mork .nbx-hero {
   border-color: var(--border, #2a2f45);
@@ -182,6 +240,9 @@ html.nbx-tema-mork .nbx-hero::after {
   background: linear-gradient(90deg, rgba(15, 17, 23, .6) 0%, rgba(15, 17, 23, .2) 60%, rgba(15, 17, 23, 0) 100%);
 }
 html.nbx-tema-mork .nbx-hero-year,
+html.nbx-tema-mork .nbx-hero-artist,
+html.nbx-tema-mork .nbx-hero-undertittel,
+html.nbx-tema-mork .nbx-hero ol.nbx-spor li i,
 html.nbx-tema-mork .nbx-hero-meta,
 html.nbx-tema-mork .nbx-hero .nbx-hint { color: #a9b3cc; }
 /* «Enda mørkere»: nesten svart toppfelt */

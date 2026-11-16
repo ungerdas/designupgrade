@@ -176,7 +176,7 @@
   const posters = { waiting: new Map(), active: 0 };
   // q = { imdb?, title?, year?, kind? }: IMDb-id først, ellers (eller i tillegg) tittelsøk hos TMDB
   function wantPoster(q, thumb) {
-    const k = q.imdb || ['t', q.kind, q.title, q.year].join('|');
+    const k = q.musikk ? 'mu|' + q.musikk : q.bok ? 'lb|' + q.bok : q.imdb || ['t', q.kind, q.title, q.year].join('|');
     if (!posters.waiting.has(k)) posters.waiting.set(k, { q, thumbs: [] });
     posters.waiting.get(k).thumbs.push(thumb);
     pumpPosters();
@@ -186,14 +186,30 @@
       const [k, { q, thumbs }] = posters.waiting.entries().next().value;
       posters.waiting.delete(k);
       posters.active++;
-      api.runtime.sendMessage({ type: 'film', ...q }).then((f) => {
+      // Musikk: cover fra Deezer/MusicBrainz (kvadratisk). Lydbøker: omslag fra
+      // Nasjonalbiblioteket. Ellers plakat fra TMDB.
+      const melding = q.musikk ? { type: 'musikk', navn: q.musikk } : q.bok ? { type: 'lydbok', navn: q.bok } : { type: 'film', ...q };
+      api.runtime.sendMessage(melding).then((f) => {
         const url = f && (f.thumb || f.poster);
         if (!url) return;
         for (const t of thumbs) {
           const img = new Image();
           img.alt = '';
           img.decoding = 'async';
-          img.onload = () => { t.replaceChildren(img); t.dataset.stor = f.poster || url; t.parentElement?.classList.add('nbx-has-poster'); };
+          img.onload = () => {
+            t.replaceChildren(img);
+            t.dataset.stor = img.src === f.coverFull ? f.coverFull : f.poster || f.cover || url;
+            if (q.musikk) {
+              t.classList.add('nbx-kvadrat');
+              t.dataset.kvadrat = '1';
+              t.style.setProperty('--cover', `url("${img.src.replace(/["\\]/g, '')}")`);
+              if (f.artist || f.title) t.title = [f.artist, f.kind === 'artist' ? '' : f.title].filter(Boolean).join(' – ');
+            }
+            if (q.bok && (f.author || f.title)) t.title = [f.author, f.title].filter(Boolean).join(' – ');
+            t.parentElement?.classList.add('nbx-has-poster');
+          };
+          // Cover Art Archive mangler av og til miniatyren: prøv originalbildet
+          img.onerror = () => { if (f.coverFull && img.src !== f.coverFull) img.src = f.coverFull; };
           img.src = url;
         }
       }).catch(() => {}).finally(() => { posters.active--; pumpPosters(); });
@@ -215,9 +231,10 @@
     visTimer = setTimeout(() => {
       skjulStor();
       const r = a.getBoundingClientRect();
-      const B = 230, H = 345, luft = 12;
+      const kvadrat = !!a.dataset.kvadrat; // musikkcover
+      const B = kvadrat ? 300 : 230, H = kvadrat ? 300 : 345, luft = 12;
       const el = document.createElement('div');
-      el.className = 'nbx-stor-plakat';
+      el.className = 'nbx-stor-plakat' + (kvadrat ? ' nbx-kvadrat' : '');
       const img = new Image();
       img.alt = '';
       img.src = a.dataset.stor;
@@ -273,6 +290,14 @@
       const hit = KOLONNER.find(([p]) => (p.length <= 2 ? w === p : w.startsWith(p)));
       return hit ? hit[1] : /^st.{1,4}r$/.test(w) ? 'size' : null;
     });
+  }
+
+  // Overskriften «Størr.» kommer feilkodet i alternativ-lista («StÃžr.»)
+  function rettOverskrift(table) {
+    for (const th of table.rows[0]?.cells || []) {
+      const el = th.querySelector('a') || th;
+      if (/Ã/.test(el.textContent) && /^\s*st.{1,4}r\.?\s*$/i.test(el.textContent)) el.textContent = 'Størr.';
+    }
   }
 
   // Lenken til selve torrenten. «reqdetails.php?id=» på ønskesiden er et ønske, ikke en torrent.
@@ -342,14 +367,29 @@
     return `<${tag} class="nbx-tb ${cls}${n === 0 || n === '0' ? ' nbx-null' : ''}"${href ? ` href="${esc(href)}"` : ''} title="${esc(title)}">${ikon(ic)}<b>${esc(n)}</b></${tag}>`;
   }
 
+  // Oppløsning og HDR fra releasenavnet. Kategorien sier bare «HD-1080p/i», også for 1440p.
+  const NAVN_RES = /(?:^|[.\s_-])(\d{3,4}p)(?=[.\s_-]|$)/i;
+  const HDR = /(?:^|[.\s_-])(HDR10\+|HDR10|HDR|HLG|DV|DoVi|DolbyVision)(?=[.\s_-]|$)/gi;
+  function hdrAv(navn) {
+    const ut = [];
+    for (const m of navn.matchAll(HDR)) {
+      const t = /^(dv|dovi|dolbyvision)$/i.test(m[1]) ? 'DV' : m[1].toUpperCase();
+      if (!ut.includes(t)) ut.push(t);
+    }
+    return ut;
+  }
+
   function lagKort(d) {
     const k = KAT[d.cat.toLowerCase()] || [d.cat.toUpperCase().slice(0, 7), '#496686'];
-    const res = d.specs.map(kortRes).find((x) => /^\d{3,4}p$/i.test(x)) || '';
+    const navnRes = ((d.name.match(NAVN_RES) || [])[1] || '').toLowerCase();
+    const visRes = (sp) => { const r = kortRes(sp); return navnRes && /^\d{3,4}p$/i.test(r) ? navnRes : r; };
+    const res = d.specs.map(visRes).find((x) => /^\d{3,4}p$/i.test(x)) || navnRes;
     const meta = [];
     if (d.ny) meta.push('<span class="nbx-ny">Ny</span>');
     if (d.rating) meta.push(`<a class="nbx-rating" href="${esc(d.imdbHref)}" title="IMDb${d.top250 ? ' · Topp 250 #' + esc(d.top250) : ''}">${ikon('star')}${esc(d.rating)}</a>`);
     meta.push(`<span class="nbx-kat" style="color:${k[1]}">${esc(k[0])}</span>`);
-    d.specs.forEach((sp) => meta.push(`<span>${esc(kortRes(sp))}</span>`));
+    d.specs.forEach((sp) => meta.push(`<span>${esc(visRes(sp))}</span>`));
+    hdrAv(d.name).forEach((h) => meta.push(`<span class="nbx-hdr" title="HDR-format">${esc(h)}</span>`));
     d.status.forEach((st) => meta.push(`<span class="nbx-status">${esc(st)}</span>`));
     if (d.uploader) meta.push(`<a class="nbx-opplaster" href="${esc(d.uploader.href)}">${ikon('user')}${esc(d.uploader.name)}</a>`);
     if (d.age) meta.push(`<span class="nbx-alder" title="${esc(d.date)}">${esc(d.age)} siden</span>`);
@@ -565,20 +605,28 @@
   });
 
   // ---------- Tabellene ----------
-  async function forbered(table) {
+  // alternativ: «Alternativer» på torrentsiden – kort uten plakat (plakaten står øverst
+  // på siden) og uten sorteringslinje (sidens egne sorteringslenker laster lista med AJAX).
+  // I tabellvisning står alternativene som før.
+  async function forbered(table, { alternativ = false } = {}) {
     if (table.dataset.nbx) return;
     table.dataset.nbx = '1';
-    table.classList.add('nbx-list');
+    if (!alternativ) table.classList.add('nbx-list');
     const { visning } = await api.storage.local.get({ visning: 'kort' });
     const keys = kolonner(table);
     const kortmodus = visning === 'kort' && keys.includes('name');
+    if (alternativ) {
+      rettOverskrift(table);
+      if (!kortmodus) return;
+      table.classList.add('nbx-list');
+    }
     const erOnske = keys.includes('requester') || keys.includes('filled');
     const rows = [];
     let liste = null;
     if (kortmodus) {
       liste = document.createElement('div');
-      liste.className = 'nbx-kortliste';
-      const sort = sorteringslinje(table);
+      liste.className = 'nbx-kortliste' + (alternativ ? ' nbx-alt' : '');
+      const sort = alternativ ? null : sorteringslinje(table);
       if (sort) table.before(sort);
       table.before(liste);
       table.classList.add('nbx-som-kort');
@@ -605,8 +653,11 @@
       const n = fraNavn(navn);
       const kind = /^tv$/i.test(cat) || n.ep ? 'tv' : /^film/i.test(cat) ? 'movie' : '';
       const q = {};
-      if (imdb) q.imdb = imdb;
-      if (kind && n.title.length > 1) Object.assign(q, { title: n.title, year: n.year, kind });
+      if (imdb && !alternativ) q.imdb = imdb;
+      if (kind && n.title.length > 1 && !alternativ) Object.assign(q, { title: n.title, year: n.year, kind });
+      // Musikk: cover og albuminfo slås opp fra releasenavnet (bakgrunnen tolker det)
+      if (/^musikk$/i.test(cat) && !erOnske && !alternativ) q.musikk = a.getAttribute('title') || a.textContent.trim();
+      if (/^lydb/i.test(cat) && !erOnske && !alternativ) q.bok = a.getAttribute('title') || a.textContent.trim();
 
       if (kortmodus) {
         const d = erOnske ? lesOnske(tr, keys) : lesRad(tr, keys);
@@ -660,7 +711,7 @@
         if (!e.isIntersecting) continue;
         near.unobserve(e.target);
         const r = byEl.get(e.target);
-        if (r && (r.q.imdb || r.q.title)) wantPoster(r.q, r.thumb);
+        if (r && (r.q.imdb || r.q.title || r.q.musikk || r.q.bok)) wantPoster(r.q, r.thumb);
       }
     }, { rootMargin: '800px 0px' });
     const seen = new IntersectionObserver((entries) => {
@@ -799,6 +850,26 @@
       document.querySelectorAll('table#torrentTable, table.torrentTable').forEach((t) => {
         if (!t.closest('#details')) forbered(t);
       });
+    },
+  });
+
+  // «Alternativer» på torrentsiden: andre utgaver av samme tittel. Lista hentes med AJAX
+  // når seksjonen åpnes, og på nytt når den sorteres, så den følges hele tiden.
+  // Peer-lista har også klassen torrentTable, så bare tabellen under «Alternativer»
+  // (overskriften med #getoc rett foran) tas med.
+  const erAlternativ = (t) => {
+    const tittel = t.closest('li.item')?.previousElementSibling;
+    return !!tittel?.querySelector('#getoc, a[href*="action=other"]');
+  };
+  NBX.liste.push({
+    navn: 'Alternativer på torrentsiden',
+    sider: ['details'],
+    kjør() {
+      const details = document.getElementById('details');
+      if (!details) return;
+      const finn = () => details.querySelectorAll('table.torrentTable:not([data-nbx])').forEach((t) => { if (erAlternativ(t)) forbered(t, { alternativ: true }); });
+      finn();
+      new MutationObserver(finn).observe(details, { childList: true, subtree: true });
     },
   });
 })();
