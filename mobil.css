@@ -459,6 +459,8 @@ html.nbx-on.nbx-mobil .nbx-hero-main > * + * { margin-top: 7px; }
 html.nbx-on.nbx-mobil .nbx-hero-title { font-size: 19px; }
 html.nbx-on.nbx-mobil .nbx-hero-year { font-size: 15px; }
 html.nbx-on.nbx-mobil .nbx-hero-status { font-size: 13px; }
+html.nbx-on.nbx-mobil .nbx-hero-episode { font-size: 14px; }
+html.nbx-on.nbx-mobil .nbx-hero-episode > * + *::before { margin: 0 6px; }
 html.nbx-on.nbx-mobil .nbx-hero-status > span + span::before { margin: 0 6px; }
 html.nbx-on.nbx-mobil .nbx-hero p.nbx-hero-plot { font-size: 13.5px; line-height: 1.55; }
 html.nbx-on.nbx-mobil .nbx-hero-foot {

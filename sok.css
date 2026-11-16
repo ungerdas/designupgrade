@@ -1,0 +1,52 @@
+/* Designupgrade — søk med TMDB- og IMDb-id (sok.js) */
+
+/* Melding eller valg (film/serie) under søkefeltet */
+html.nbx-on .nbx-idsok {
+  position: absolute;
+  z-index: 10000;
+  box-sizing: border-box;
+  max-width: min(420px, calc(100vw - 16px));
+  padding: 8px 10px;
+  border: 1px solid #c5ced8;
+  border-radius: 6px;
+  background: #fff;
+  color: #222;
+  font-size: 12px;
+  line-height: 1.45;
+  text-align: left;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+}
+html.nbx-on .nbx-idsok-feil { border-color: #e2a4a4; background: #fff5f5; color: #8a1f1f; }
+html.nbx-on .nbx-idsok button {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  margin-top: 6px;
+  padding: 6px 9px;
+  border: 1px solid #c5ced8;
+  border-radius: 4px;
+  background: #f3f6f9;
+  color: #1e3a56;
+  font: inherit;
+  font-weight: bold;
+  text-align: left;
+  cursor: pointer;
+}
+html.nbx-on .nbx-idsok button:hover,
+html.nbx-on .nbx-idsok button:focus-visible { background: #e3ebf3; border-color: #8aa4bf; outline: none; }
+
+/* Mørk modus */
+html.nbx-on.nbx-tema-mork .nbx-idsok {
+  border-color: var(--border-bright, #3a4060);
+  background: var(--bg-panel, #1e2130);
+  color: var(--text, #d8dce8);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+}
+html.nbx-on.nbx-tema-mork .nbx-idsok-feil { border-color: #7a3a3a; background: #2a1a1e; color: #f0b4b4; }
+html.nbx-on.nbx-tema-mork .nbx-idsok button {
+  border-color: var(--border-bright, #3a4060);
+  background: var(--bg-panel-alt, #252a3a);
+  color: var(--text-bright, #eef0f6);
+}
+html.nbx-on.nbx-tema-mork .nbx-idsok button:hover,
+html.nbx-on.nbx-tema-mork .nbx-idsok button:focus-visible { background: var(--bg-hover, #2c3247); border-color: var(--accent, #5b8def); }

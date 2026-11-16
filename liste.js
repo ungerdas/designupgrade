@@ -174,9 +174,10 @@
 
   // ---------- Plakat-kø ----------
   const posters = { waiting: new Map(), active: 0 };
-  // q = { imdb?, title?, year?, kind? }: IMDb-id først, ellers (eller i tillegg) tittelsøk hos TMDB
+  // q = { tmdb?, imdb?, title?, year?, kind? }: TMDB-id (lært på torrentsiden) først, så
+  // IMDb-id, ellers (eller i tillegg) tittelsøk hos TMDB
   function wantPoster(q, thumb) {
-    const k = q.musikk ? 'mu|' + q.musikk : q.bok ? 'lb|' + q.bok : q.imdb || ['t', q.kind, q.title, q.year].join('|');
+    const k = q.musikk ? 'mu|' + q.musikk : q.bok ? 'lb|' + q.bok : q.tmdb ? `tm|${q.tmdb.kind}/${q.tmdb.id}` : q.imdb || ['t', q.kind, q.title, q.year].join('|');
     if (!posters.waiting.has(k)) posters.waiting.set(k, { q, thumbs: [] });
     posters.waiting.get(k).thumbs.push(thumb);
     pumpPosters();
@@ -665,7 +666,7 @@
         const kort = erOnske ? lagOnskeKort(d) : lagKort(d);
         if (!erOnske) merkSprak(kort, navn);
         liste.append(kort);
-        rows.push({ el: kort, tid, q, thumb: kort.querySelector('.nbx-kort-plakat'), langs: kort.querySelector('.nbx-langs'), done: erOnske });
+        rows.push({ el: kort, tid, q, thumb: kort.querySelector('.nbx-kort-plakat'), langs: kort.querySelector('.nbx-langs'), done: erOnske, utenPlakat: alternativ });
         return;
       }
 
@@ -694,10 +695,13 @@
   // Lagrede språk med en gang, plakat når kortet nærmer seg skjermen og
   // MediaInfo når det faktisk vises. rows: [{ el, tid, q, thumb, langs, done }]
   async function følgRader(rows) {
-    // Språk vi allerede kjenner (bare torrenter)
+    // Språk vi allerede kjenner (bare torrenter), og TMDB-id-er lært på torrentsiden
+    // (TMDB-lenke i beskrivelsen), så kortet får samme plakat som torrentsiden
     const medTid = rows.filter((r) => r.tid);
-    const known = medTid.length ? await api.storage.local.get(medTid.map((r) => 'm:' + r.tid)) : {};
+    const known = medTid.length ? await api.storage.local.get(medTid.flatMap((r) => ['m:' + r.tid, 'k:' + r.tid])) : {};
     for (const r of medTid) {
+      const tm = String(known['k:' + r.tid] || '').match(/^(movie|tv)\/(\d{1,9})$/);
+      if (tm && !r.utenPlakat && !r.q.musikk && !r.q.bok) r.q.tmdb = { kind: tm[1], id: tm[2] };
       const m = known['m:' + r.tid];
       if (m) { r.done = true; settHtml(r.langs, langsHtml(m)); }
       if (!mi.rows.has(r.tid)) mi.rows.set(r.tid, []);
@@ -711,7 +715,7 @@
         if (!e.isIntersecting) continue;
         near.unobserve(e.target);
         const r = byEl.get(e.target);
-        if (r && (r.q.imdb || r.q.title || r.q.musikk || r.q.bok)) wantPoster(r.q, r.thumb);
+        if (r && (r.q.tmdb || r.q.imdb || r.q.title || r.q.musikk || r.q.bok)) wantPoster(r.q, r.thumb);
       }
     }, { rootMargin: '800px 0px' });
     const seen = new IntersectionObserver((entries) => {

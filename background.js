@@ -147,13 +147,44 @@ async function filmFromTitle(title, year, kind) {
   return data || { source: 'none' };
 }
 
-// IMDb-id først. Kjenner ikke TMDB den (nye serier/sesonger mangler ofte koblingen),
-// eller finnes det ingen, søkes det på tittel (og år).
+// Rett på TMDB-id-en (fra en TMDB-lenke i beskrivelsen eller et søk). kind: 'movie' eller 'tv'.
+// error: true betyr at TMDB ikke svarte (prøv igjen), ikke at id-en mangler.
+async function tmdbPåId(kind, id) {
+  const key = await getKey();
+  if (!key) return { source: 'nokey' };
+  const cacheKey = 't:' + kind + ':' + id;
+  const cached = (await api.storage.local.get(cacheKey))[cacheKey];
+  if (cached) {
+    const age = Date.now() - cached.t;
+    if (age < (cached.miss ? MISS_DAYS : KEEP_DAYS) * 864e5 && !gammel(cached)) return cached.data || { source: 'none' };
+  }
+  let data = null;
+  try {
+    data = await tmdbDetails(kind, id, key, null);
+  } catch (e) {
+    if (e.status !== 404) return { source: 'none', error: true, status: e.status || 0 };
+  }
+  await api.storage.local.set({ [cacheKey]: data ? { t: Date.now(), data } : { t: Date.now(), miss: true } });
+  return data || { source: 'none' };
+}
+
+const tmdbRef = (r) => (r && ['movie', 'tv'].includes(r.kind) && /^\d{1,9}$/.test(String(r.id)) ? { kind: r.kind, id: String(r.id) } : null);
+
+// TMDB-lenke på siden først (riktig treff hver gang), så IMDb-id. Kjenner ikke TMDB
+// IMDb-id-en (nye serier/sesonger mangler ofte koblingen), eller finnes det ingen,
+// søkes det på tittel (og år).
 async function finnFilm(msg) {
   const imdb = /^tt\d{7,9}$/.test(msg.imdb || '') ? msg.imdb : '';
   const title = msg.title ? String(msg.title).slice(0, 120) : '';
   const year = /^\d{4}$/.test(msg.year || '') ? msg.year : '';
   const kind = ['tv', 'movie'].includes(msg.kind) ? msg.kind : '';
+  const ref = tmdbRef(msg.tmdb);
+  if (ref) {
+    const data = await tmdbPåId(ref.kind, ref.id);
+    if (data.source === 'nokey') return data;
+    if (data.source === 'tmdb') return imdb && !data.imdb ? { ...data, imdb } : data;
+    // Feil id i lenken eller ingen kontakt: vanlig oppslag under
+  }
   if (!imdb) return filmFromTitle(title, year, kind);
   const data = await film(imdb);
   if (data.source === 'none' && title) {
@@ -161,6 +192,65 @@ async function finnFilm(msg) {
     if (viaTitle.source === 'tmdb') return { ...viaTitle, imdb };
   }
   return data;
+}
+
+// Episode av en serie (releasenavn med SxxEyy): tittel, sendedato og handling.
+// Nye episoder får ofte handling etter hvert, så treff uten handling hentes på nytt
+// etter én dag, ellers etter en uke.
+const EPISODE_V = 1;
+const GENERISK_EPISODE = /^(episode|episodio|épisode|folge|afsnit|avsnitt|aflevering|jakso|odcinek|del|part)\s*\d+$/i;
+function besteNavn(d) {
+  const tr = d.translations?.translations || [];
+  for (const sprak of [...NORSK, 'en', 'da', 'sv']) {
+    const n = tr.find((x) => x.iso_639_1 === sprak && x.data?.name?.trim())?.data.name.trim();
+    if (n && !GENERISK_EPISODE.test(n)) return n;
+  }
+  const n = String(d.name || '').trim();
+  return GENERISK_EPISODE.test(n) ? '' : n;
+}
+
+async function tmdbEpisode(msg) {
+  const id = String(msg.id ?? '');
+  const s = Number(msg.s);
+  const e = Number(msg.e);
+  if (!/^\d{1,9}$/.test(id) || !Number.isInteger(s) || s < 0 || s > 200 || !Number.isInteger(e) || e < 1 || e > 5000) return { source: 'none' };
+  const key = await getKey();
+  if (!key) return { source: 'nokey' };
+  const cacheKey = `e:${id}:${s}:${e}`;
+  const cached = (await api.storage.local.get(cacheKey))[cacheKey];
+  if (cached && cached.data?.v === EPISODE_V || cached?.miss) {
+    const dager = cached.miss || !cached.data.overview ? 1 : 7;
+    if (Date.now() - cached.t < dager * 864e5) return cached.data || { source: 'none' };
+  }
+  let d;
+  try {
+    d = await tmdb(`/tv/${id}/season/${s}/episode/${e}`, key, { language: 'nb-NO', append_to_response: 'translations' });
+  } catch (err) {
+    if (err.status === 404) await api.storage.local.set({ [cacheKey]: { t: Date.now(), miss: true } });
+    return { source: 'none' };
+  }
+  const data = {
+    source: 'tmdb', v: EPISODE_V, s, e,
+    name: besteNavn(d),
+    airDate: /^\d{4}-\d{2}-\d{2}$/.test(d.air_date || '') ? d.air_date : '',
+    overview: besteBeskrivelse(d),
+    runtime: d.runtime || 0,
+  };
+  await api.storage.local.set({ [cacheKey]: { t: Date.now(), data } });
+  return data;
+}
+
+// Søk med TMDB-id: hva id-en er (film og/eller serie) og hvilken IMDb-id den har.
+// Uten type slås begge opp, siden film og serie har hver sin nummerserie.
+async function finnTmdbId(msg) {
+  const id = String(msg.id);
+  const typer = ['movie', 'tv'].includes(msg.kind) ? [msg.kind] : ['movie', 'tv'];
+  const svar = await Promise.all(typer.map((k) => tmdbPåId(k, id)));
+  if (svar.some((s) => s.source === 'nokey')) return { source: 'nokey', treff: [] };
+  if (svar.some((s) => s.status === 401)) return { source: 'badkey', treff: [] };
+  const treff = svar.filter((s) => s.source === 'tmdb')
+    .map((s) => ({ kind: s.kind, id: String(s.tmdbId), imdb: s.imdb || '', title: s.title, year: s.year }));
+  return { treff, error: !treff.length && svar.some((s) => s.error) };
 }
 
 // ---------------------------------------------------------------------------
@@ -684,8 +774,16 @@ api.runtime.onMessage.addListener((msg, _sender, reply) => {
     finnMusikk(msg).then(reply, (e) => reply({ error: String(e) }));
     return true;
   }
-  if (msg?.type === 'film' && (msg.imdb || msg.title)) {
+  if (msg?.type === 'film' && (msg.imdb || msg.title || msg.tmdb)) {
     finnFilm(msg).then(reply, (e) => reply({ error: String(e) }));
+    return true;
+  }
+  if (msg?.type === 'episode') {
+    tmdbEpisode(msg).then(reply, (e) => reply({ error: String(e) }));
+    return true;
+  }
+  if (msg?.type === 'tmdb-id' && /^\d{1,9}$/.test(String(msg.id ?? ''))) {
+    finnTmdbId(msg).then(reply, (e) => reply({ error: String(e), treff: [] }));
     return true;
   }
   if (msg?.type === 'tmdb-test') {
@@ -695,7 +793,7 @@ api.runtime.onMessage.addListener((msg, _sender, reply) => {
   }
   if (msg?.type === 'tom-buffer') {
     api.storage.local.get(null).then(async (all) => {
-      const keys = Object.keys(all).filter((k) => k.startsWith('f:') || k.startsWith('s:') || k.startsWith('mu:') || k.startsWith('lb:'));
+      const keys = Object.keys(all).filter((k) => /^(f|s|t|e|mu|lb):/.test(k));
       if (keys.length) await api.storage.local.remove(keys);
       reply({ removed: keys.length });
     });

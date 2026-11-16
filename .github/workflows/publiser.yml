@@ -5,6 +5,8 @@
 #                   publiserer den, og Firefox oppdaterer brukerne automatisk.
 #   «[selv]»      → signeres som selvdistribuert («unlisted»), og den signerte .xpi-fila
 #                   legges ut som GitHub-utgivelse (Releases), klar til å deles.
+#                   updates.json på grenen «oppdateringer» peker så på den nye fila,
+#                   og Firefox oppdaterer utvidelsen av seg selv (sjekker én gang i døgnet).
 #   «[skip ci]»   → ingenting skjer.
 # Begge måtene lager også Chrome-utgaven (…-chrome.zip) og legger den i GitHub-utgivelsen
 # for versjonen. Ved «[selv]» ligger den ved siden av .xpi-fila; ved AMO får utgivelsen
@@ -43,6 +45,8 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       MELDING: ${{ github.event.head_commit.message }}
       KANALVALG: ${{ inputs.kanal }}
+      # Fast adresse uten videresending, som Firefox sjekker for nye versjoner
+      OPPDATERING_URL: https://raw.githubusercontent.com/${{ github.repository }}/oppdateringer/updates.json
     steps:
       - uses: actions/checkout@v6
 
@@ -77,8 +81,16 @@ jobs:
 
       - name: Bygg utgaven
         if: steps.v.outputs.ny == 'ja'
+        env:
+          KANAL: ${{ steps.v.outputs.kanal }}
         run: |
-          python3 tools/lag-utgave.py --mappe bygg
+          # Selvdistribuert får adressen til updates.json i manifestet. AMO godtar den ikke
+          # på offentlige utvidelser, der oppdaterer Mozilla selv.
+          if [ "$KANAL" = "unlisted" ]; then
+            python3 tools/lag-utgave.py --mappe bygg --update-url "$OPPDATERING_URL"
+          else
+            python3 tools/lag-utgave.py --mappe bygg
+          fi
           python3 tools/lag-utgave.py --chrome
 
       - name: Lag notater
@@ -152,6 +164,7 @@ jobs:
             if [ "$KANAL" = "unlisted" ]; then
               echo "**Firefox:** last ned **$XPI** under og dra fila inn i Firefox (142 eller nyere, PC)."
               echo "Den erstatter en eldre versjon, og TMDB-nøkkelen og innstillingene blir med."
+              echo "Fra og med 3.11.0 oppdaterer Firefox utvidelsen av seg selv når det kommer en ny versjon."
             else
               echo "**Firefox:** oppdateres automatisk fra Mozillas utvidelsesside når Mozilla har godkjent versjonen."
             fi
@@ -160,3 +173,32 @@ jobs:
             echo "på Designupgrade i chrome://extensions. Første gang: se LES-MEG.txt i zip-fila."
           } > notater.md
           gh release create "v$VER" "${FILER[@]}" --target "$GITHUB_SHA" --title "Designupgrade $VER" --notes-file notater.md
+
+      # Selvdistribuert: updates.json på grenen «oppdateringer» peker på den nye .xpi-fila.
+      # Grenen har bare denne ene fila og skrives over hver gang, så main røres ikke.
+      - name: Oppdater updates.json
+        if: steps.v.outputs.ny == 'ja' && steps.v.outputs.kanal == 'unlisted'
+        run: |
+          VER=${{ steps.v.outputs.ver }}
+          XPI="designupgrade-$VER.xpi"
+          export VER XPI
+          python3 - <<'PY'
+          import hashlib, json, os
+          gecko = json.load(open('manifest.json', encoding='utf-8'))['browser_specific_settings']['gecko']
+          ver, xpi = os.environ['VER'], os.environ['XPI']
+          ny = {
+              'version': ver,
+              'update_link': f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/releases/download/v{ver}/{xpi}",
+              'update_hash': 'sha256:' + hashlib.sha256(open(xpi, 'rb').read()).hexdigest(),
+          }
+          if gecko.get('strict_min_version'):
+              ny['applications'] = {'gecko': {'strict_min_version': gecko['strict_min_version']}}
+          json.dump({'addons': {gecko['id']: {'updates': [ny]}}}, open('updates.json', 'w', encoding='utf-8'), indent=2)
+          PY
+          cat updates.json
+          mkdir oppd && cp updates.json oppd/ && cd oppd
+          git init -q -b oppdateringer
+          git add updates.json
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -q -m "updates.json for $VER"
+          git push -f -q "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" oppdateringer
+          echo "Firefox finner nå $VER på $OPPDATERING_URL"

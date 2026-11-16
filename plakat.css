@@ -84,6 +84,12 @@ html.nbx-on .nbx-hero-wrap > h2 { display: none; }
 .nbx-hero-status .nbx-st-on { color: #9be7b1; }
 .nbx-hero-status .nbx-st-off { color: #ffb0b0; }
 
+/* Enkeltepisode: «S05E10 · «Tittel» · 45 min · sendt 12. mars 2026» */
+.nbx-hero-episode { display: flex; flex-wrap: wrap; align-items: baseline; margin-top: -2px; font-size: 15px; color: #fff; }
+.nbx-hero-episode > * + *::before { content: "·"; margin: 0 10px; color: #aebfd1; font-style: normal; }
+.nbx-hero-episode b { font-weight: 700; letter-spacing: .02em; }
+.nbx-hero-episode i { font-style: normal; color: #c9d6e4; }
+
 .nbx-hero-badges { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .nbx-hero-badges:empty { display: none; }
 .nbx-hero .nbx-b {
@@ -244,6 +250,7 @@ html.nbx-tema-mork .nbx-hero-artist,
 html.nbx-tema-mork .nbx-hero-undertittel,
 html.nbx-tema-mork .nbx-hero ol.nbx-spor li i,
 html.nbx-tema-mork .nbx-hero-meta,
+html.nbx-tema-mork .nbx-hero-episode i,
 html.nbx-tema-mork .nbx-hero .nbx-hint { color: #a9b3cc; }
 /* «Enda mørkere»: nesten svart toppfelt */
 html.nbx-tema-morkere .nbx-hero { background: linear-gradient(135deg, #14151b 0%, #0c0d11 50%, #060709 100%); }

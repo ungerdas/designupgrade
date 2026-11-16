@@ -4,6 +4,8 @@
 //    (detaljsiden viser den ikke).
 // 2) På detaljsiden vises en toppdel med plakat, tittel, år, status,
 //    rating, sjangre, ID-er og handling fra TMDB (krever TMDB-nøkkel).
+//    For enkeltepisoder (S05E10) også episodens tittel, sendedato og handling.
+//    En TMDB-lenke i beskrivelsen brukes først, så IMDb-id, så tittelen.
 // 3) For musikk: cover, type, spor, spilletid, plateselskap, sjangre og
 //    sporliste fra Deezer eller MusicBrainz (ingen nøkkel).
 // 4) For lydbøker: omslag, forfatter, oppleser, forlag, sjangre og omtale
@@ -63,6 +65,25 @@
     } catch {
       return null;
     }
+  }
+
+  // TMDB-lenke i beskrivelsen (f.eks. «TMDB.......: https://www.themoviedb.org/tv/243518»).
+  // Bare i selve beskrivelsen, så lenker i kommentarer ikke tas med. Lenkene går via
+  // redir.php?url=… og er kodet der, så både adressen og teksten leses.
+  function tmdbFraBeskrivelse(details) {
+    const tittel = [...details.querySelectorAll('li.title')].find((li) => /\bbeskrivelse\b/i.test(txt(li)));
+    const item = tittel?.nextElementSibling;
+    if (!item) return null;
+    const kilder = [...item.querySelectorAll('a[href]')].map((a) => {
+      const h = a.getAttribute('href') || '';
+      try { return decodeURIComponent(h); } catch { return h; }
+    });
+    kilder.push(item.textContent);
+    for (const k of kilder) {
+      const m = k.match(/themoviedb\.org\/(movie|tv)\/(\d{1,9})/i);
+      if (m) return { kind: m[1].toLowerCase(), id: m[2] };
+    }
+    return null;
   }
 
   // Tittel og år fra releasenavnet, brukt til data er hentet (og uten treff)
@@ -146,6 +167,30 @@
     if (f.overview) plot.textContent = f.overview;
     else if (f.source === 'nokey') plot.innerHTML = '<span class="nbx-hint">Legg inn en TMDB-nøkkel i Designupgrade-popupen (verktøylinja) for å få plakat, handling, sjangre og status.</span>';
     else plot.remove();
+  }
+
+  // Enkeltepisode (S05E10): «S05E10 · «Episodetittel» · 45 min · sendt 12. mars 2026» under
+  // tittelen, og handlingen for episoden i stedet for seriens (når TMDB har den).
+  function fyllEpisode(hero, epi) {
+    const nr = `S${String(epi.s).padStart(2, '0')}E${String(epi.e).padStart(2, '0')}`;
+    const deler = [`<b>${nr}</b>`];
+    if (epi.name) deler.push(`<span>«${esc(epi.name)}»</span>`);
+    if (epi.runtime) deler.push(`<span>${esc(runtime(epi.runtime))}</span>`);
+    const d = epi.airDate ? new Date(epi.airDate + 'T12:00:00') : null;
+    if (d && !isNaN(d)) deler.push(`<i>${d > new Date() ? 'sendes' : 'sendt'} ${esc(d.toLocaleDateString('nb-NO', { day: 'numeric', month: 'long', year: 'numeric' }))}</i>`);
+    const el = document.createElement('div');
+    el.className = 'nbx-hero-episode';
+    settHtml(el, deler.join(''));
+    hero.querySelector('.nbx-hero-title').after(el);
+    if (epi.overview) {
+      let plot = hero.querySelector('.nbx-hero-plot');
+      if (!plot) {
+        plot = document.createElement('p');
+        plot.className = 'nbx-hero-plot';
+        hero.querySelector('.nbx-hero-badges').after(plot);
+      }
+      plot.textContent = epi.overview;
+    }
   }
 
   // ---------- 3) Musikk ----------
@@ -357,17 +402,30 @@
 
       const imdb = await finnImdb(tid, name);
       let film = null;
-      // IMDb-id først. Tittel og år sendes med for film og TV, så TMDB søkes på tittel
-      // når IMDb-id-en mangler (vanlig for norske programmer) eller TMDB ikke kjenner den.
+      // TMDB-lenken i beskrivelsen først, så IMDb-id. Tittel og år sendes med for film og
+      // TV, så TMDB søkes på tittel når IMDb-id-en mangler (vanlig for norske programmer)
+      // eller TMDB ikke kjenner den.
       const kind = /^tv$/i.test(inf['kategori'] || '') || rel.ep ? 'tv' : /^film/i.test(inf['kategori'] || '') ? 'movie' : '';
       const q = {};
+      const tmdb = tmdbFraBeskrivelse(details);
+      if (tmdb) q.tmdb = tmdb;
+      // Husk lenken for torrenten, så kortet i lista henter samme plakat
+      if (tmdb) api.storage.local.set({ ['k:' + tid]: `${tmdb.kind}/${tmdb.id}` }).catch(() => {});
+      else api.storage.local.remove('k:' + tid).catch(() => {});
       if (imdb) q.imdb = imdb;
       if (kind && rel.title) Object.assign(q, { title: rel.title, year: rel.year, kind });
-      if (q.imdb || q.title) {
+      if (q.tmdb || q.imdb || q.title) {
         try { film = await api.runtime.sendMessage({ type: 'film', ...q }); } catch { film = null; }
       }
       if (!film || film.error) film = { imdb, source: 'none' };
       fyll(hero, film, rel);
+
+      const ep = /^S(\d{1,2})E(\d{1,3})/i.exec(rel.ep || '');
+      if (ep && film.source === 'tmdb' && film.kind === 'tv' && film.tmdbId) {
+        let epi = null;
+        try { epi = await api.runtime.sendMessage({ type: 'episode', id: film.tmdbId, s: +ep[1], e: +ep[2] }); } catch { epi = null; }
+        if (epi && epi.source === 'tmdb') fyllEpisode(hero, epi);
+      }
     },
   });
 })();
