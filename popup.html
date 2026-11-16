@@ -76,9 +76,11 @@
     <label><input type="checkbox" name="skjulSprak" value="fi"> Finske</label>
   </div>
 
-  <h2>Musikk og lydbøker</h2>
-  <label title="Cover, spor, spilletid og sjangre for torrenter i kategorien Musikk. Artist og albumtittel fra releasenavnet sendes til Deezer (og MusicBrainz når Deezer ikke har albumet).">Cover og albuminfo fra Deezer <input type="checkbox" id="musikk"></label>
-  <label title="Omslag, omtale, sjangre, forlag og oppleser for torrenter i kategorien Lydbøker. Forfatter og tittel fra releasenavnet sendes til Nasjonalbiblioteket.">Omslag og omtale fra Nasjonalbiblioteket <input type="checkbox" id="lydbok"></label>
+  <div id="tilgang" hidden>
+    <h2>Cover for musikk og lydbøker</h2>
+    <p>Firefox gir ikke nye tillatelser når utvidelsen oppdateres. Gi tilgang til Deezer, MusicBrainz og Nasjonalbiblioteket for å få cover og info.</p>
+    <button id="gi-tilgang" style="margin-top:6px">Gi tilgang</button>
+  </div>
 
   <h2>TMDB-nøkkel (plakat og handling)</h2>
   <div class="row">

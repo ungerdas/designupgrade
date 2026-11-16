@@ -456,11 +456,18 @@ async function mbAlbumDetaljer(data) {
   return ut;
 }
 
+// Firefox gir ikke nye vertstillatelser når en MV3-utvidelse oppdateres (bare ved ny
+// installasjon). MusicBrainz og Nasjonalbiblioteket svarer likevel (CORS), men Deezer
+// gjør det ikke. Uten tilgang til Deezer brukes MusicBrainz, og popupen viser en knapp
+// som ber om tilgangen.
+async function harDeezer() {
+  try { return await api.permissions.contains({ origins: [DEEZER + '/*'] }); } catch { return true; }
+}
+
 async function finnMusikk(msg) {
-  const { musikk } = await api.storage.local.get({ musikk: true });
   const p = musikkFraNavn(String(msg.navn || '').slice(0, 300));
   const tolket = { artist: p.artist, album: p.album, year: p.år, type: p.type, va: p.va };
-  if (!musikk) return { source: 'av', tolket };
+  const deezerOk = await harDeezer();
   const artistOppslag = p.type === 'diskografi';
   if (artistOppslag ? !p.artist : !p.album) return { source: 'none', tolket };
   const nøkkel = 'mu:' + (artistOppslag ? ['artist', norm(p.artist)] : ['album', norm(p.artist), norm(p.album), p.va ? 'va' : '', p.år]).join('|');
@@ -471,13 +478,14 @@ async function finnMusikk(msg) {
   if (fersk && lagret.miss) return { source: 'none', tolket };
   if (!data) {
     try {
-      if (artistOppslag) data = await deezerArtist(p);
-      else data = (await deezerAlbum(p)) || (await mbAlbum(p));
+      if (artistOppslag) data = deezerOk ? await deezerArtist(p) : null;
+      else data = (deezerOk ? await deezerAlbum(p) : null) || (await mbAlbum(p));
     } catch {
-      return { source: 'none', tolket }; // nettverk eller for mange kall: prøv igjen neste gang
+      return { source: 'none', tolket, manglerTilgang: !deezerOk }; // nettverk eller for mange kall: prøv igjen neste gang
     }
-    await api.storage.local.set({ [nøkkel]: data ? { t: Date.now(), data } : { t: Date.now(), miss: true } });
-    if (!data) return { source: 'none', tolket };
+    // Uten Deezer huskes ikke «ikke funnet», så det prøves igjen når tilgangen er gitt
+    if (data || deezerOk) await api.storage.local.set({ [nøkkel]: data ? { t: Date.now(), data } : { t: Date.now(), miss: true } });
+    if (!data) return { source: 'none', tolket, manglerTilgang: !deezerOk };
   }
   if (msg.detaljer && !data.detaljer) {
     try {
@@ -645,10 +653,8 @@ async function nbBokDetaljer(data) {
 }
 
 async function finnLydbok(msg) {
-  const { lydbok } = await api.storage.local.get({ lydbok: true });
   const p = bokFraNavn(String(msg.navn || '').slice(0, 300));
   const tolket = { author: p.forfatter, title: p.delNr ? p.deler[p.deler.length - 1] : p.tittel, year: p.år, pakke: p.pakke };
-  if (!lydbok) return { source: 'av', tolket };
   if (p.pakke || !bokOrd(p.tittel).length) return { source: 'none', tolket };
   const nøkkel = 'lb:' + [somNavn(p.forfatter), somNavn(p.tittel), p.år].join('|');
   const lagret = (await api.storage.local.get(nøkkel))[nøkkel];

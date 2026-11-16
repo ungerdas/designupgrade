@@ -215,6 +215,10 @@
     // Sporliste (album) eller albumliste (diskografi). Lange lister viser de første 12.
     const plot = hero.querySelector('.nbx-hero-plot, .nbx-hero-spor');
     const liste = !funnet ? [] : artistSide ? m.album || [] : (m.spor || []).map(([n, sek]) => [n, mmss(sek)]);
+    if (!liste.length && !funnet && m.manglerTilgang && plot) {
+      settHtml(plot, '<span class="nbx-hint">Klikk på Designupgrade-ikonet og «Gi tilgang» for å få cover og albuminfo fra Deezer.</span>');
+      return;
+    }
     if (!liste.length) { if (ferdig) plot?.remove(); return; }
     const vis = liste.length > 16 ? 12 : liste.length;
     const boks = document.createElement('div');

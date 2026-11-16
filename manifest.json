@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Designupgrade",
-  "version": "3.10.0",
+  "version": "3.10.1",
   "description": "Små designjusteringer: plakat og handling fra TMDB, musikkcover, kortvisning med plakater og språkflagg, mørk modus og mobilvisning.",
   "icons": {
     "16": "icons/icon16.png",

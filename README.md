@@ -11,7 +11,7 @@ Utvidelsen kommer også på Firefox Add-ons, og da oppdateres den automatisk.
 
 ## Personvern
 
-Tittel, år og IMDb-id sendes til The Movie Database for å finne riktig plakat og handling. For musikk sendes artist og albumtittel til Deezer, og til MusicBrainz når Deezer ikke har albumet. For lydbøker sendes forfatter og tittel til Nasjonalbiblioteket. Begge deler kan skrus av i popupen. Ingenting sendes til utvikleren, og det er ingen sporing.
+Tittel, år og IMDb-id sendes til The Movie Database for å finne riktig plakat og handling. For musikk sendes artist og albumtittel til Deezer, og til MusicBrainz når Deezer ikke har albumet. For lydbøker sendes forfatter og tittel til Nasjonalbiblioteket. Ingenting sendes til utvikleren, og det er ingen sporing.
 
 ---
 
