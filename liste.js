@@ -865,6 +865,57 @@
     const tittel = t.closest('li.item')?.previousElementSibling;
     return !!tittel?.querySelector('#getoc, a[href*="action=other"]');
   };
+  // Siden lager ikke alltid «Alternativer», selv om det finnes andre utgaver med samme
+  // IMDb-id (The Odyssey: WEB-DL og BluRay så ikke hverandre). Spør man siden selv med
+  // IMDb-id-en, svarer den riktig. Mangler seksjonen og beskrivelsen har en IMDb-id, spør vi
+  // på samme måte og setter seksjonen inn der siden ville hatt den (rett før peers).
+  async function hentAlternativer(details) {
+    const finnes = () => !!details.querySelector('#getoc, a[href*="action=other"]');
+    if (finnes()) return;
+    const tid = new URLSearchParams(location.search).get('id') || '';
+    const imdb = (details.innerHTML.match(/imdb\.com(?:\/|%2F)title(?:\/|%2F)(tt\d{7,9})/i) || [])[1];
+    if (!/^\d+$/.test(tid) || !imdb) return;
+    const adresse = `ajax_details.php?action=other&id=${tid}&imdb=${imdb}`;
+    let html = '';
+    try {
+      const r = await fetch('/' + adresse, { credentials: 'include' });
+      if (r.ok) html = await r.text();
+    } catch { return; }
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    doc.querySelectorAll('script').forEach((s) => s.remove());
+    const tabell = doc.querySelector('table.torrentTable');
+    const antall = tabell ? [...tabell.querySelectorAll('tr')].filter((tr) => tr.querySelector('a[href*="download.php"]')).length : 0;
+    if (!antall || finnes()) return;
+    const peers = details.querySelector('a#getpeer')?.closest('li.title');
+    const liste = peers?.parentElement || details.querySelector('ul');
+    if (!liste) return;
+    const tittel = document.createElement('li');
+    tittel.className = 'title';
+    tittel.style.borderBottom = '1px solid rgb(204, 204, 204)';
+    const a = document.createElement('a');
+    a.href = adresse; // «action=other» i adressen gjør at den gjenkjennes som Alternativer
+    a.className = 'nbx-alt-hentet';
+    const tegn = document.createElement('span');
+    tegn.textContent = '-';
+    a.append(tegn, ` Alternativer (${antall})`);
+    const item = document.createElement('li');
+    item.className = 'item';
+    item.style.textAlign = 'left';
+    for (const n of [...doc.body.childNodes]) item.append(document.importNode(n, true));
+    a.addEventListener('click', (e) => { // egen åpne/lukke, siden sidens skript ikke kjenner denne
+      e.preventDefault();
+      const vis = item.style.display === 'none';
+      item.style.display = vis ? '' : 'none';
+      tegn.textContent = vis ? '-' : '+';
+    });
+    tittel.append(a);
+    const spacer = document.createElement('li');
+    spacer.className = 'spacer';
+    spacer.append(document.createElement('span'));
+    if (peers) peers.before(tittel, item, spacer);
+    else liste.append(spacer, tittel, item);
+  }
+
   NBX.liste.push({
     navn: 'Alternativer på torrentsiden',
     sider: ['details'],
@@ -874,6 +925,7 @@
       const finn = () => details.querySelectorAll('table.torrentTable:not([data-nbx])').forEach((t) => { if (erAlternativ(t)) forbered(t, { alternativ: true }); });
       finn();
       new MutationObserver(finn).observe(details, { childList: true, subtree: true });
+      hentAlternativer(details);
     },
   });
 })();
