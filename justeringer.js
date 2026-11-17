@@ -152,6 +152,46 @@
       },
     },
 
+    {
+      // Sidens egne stilark (themes/…/style.css og kategoriikonene) importeres fra en <style>,
+      // og av og til blir de ikke lastet. Da står bare mørk modus igjen: logoen blir tekst,
+      // menyen stables loddrett og datoen havner oppå ikonene. Mangler et stilark når siden er
+      // ferdig lastet, hentes det på nytt (opptil to ganger). Står det i konsollen (F12).
+      navn: 'Hent sidens stilark på nytt om det mangler',
+      kjør() {
+        // Et stilark som ikke ble lastet, er tomt eller sperret (Chrome gir SecurityError).
+        // Fra et annet domene er det alltid sperret, så de kan ikke sjekkes og hoppes over.
+        const lastet = (r) => {
+          let egen = true;
+          try { egen = new URL(r.href, document.baseURI).origin === location.origin; } catch { egen = true; }
+          try { return !!r.styleSheet && r.styleSheet.cssRules.length > 0; } catch { return !egen; }
+        };
+        const importer = (st) => {
+          try { return [...st.sheet.cssRules].filter((r) => r.href && 'styleSheet' in r); } catch { return []; }
+        };
+        const hent = (st, href, forsøk) => {
+          const ny = document.createElement('style');
+          ny.dataset.nbxStilark = String(forsøk);
+          ny.textContent = `@import url("${href}${href.includes('?') ? '&' : '?'}nbx=${Date.now()}");`;
+          st.after(ny);
+          console.info(`[Designupgrade] Sidens stilark ble ikke lastet, henter det på nytt (forsøk ${forsøk}):`, href);
+          setTimeout(() => {
+            if (importer(ny).every(lastet)) return console.info('[Designupgrade] Stilarket er hentet:', href);
+            ny.remove();
+            if (forsøk < 2) hent(st, href, forsøk + 1);
+            else console.warn('[Designupgrade] Fikk ikke hentet sidens stilark:', href);
+          }, 4000);
+        };
+        const sjekk = () => {
+          for (const st of document.querySelectorAll('style:not([data-nbx-stilark])')) {
+            for (const r of importer(st)) if (!lastet(r)) hent(st, r.href, 1);
+          }
+        };
+        if (document.readyState === 'complete') sjekk();
+        else window.addEventListener('load', sjekk, { once: true });
+      },
+    },
+
     // {
     //   navn: 'Eksempel: marker egne torrents',
     //   sider: ['browse'],

@@ -612,7 +612,10 @@ function nb(sti = '', params = {}) {
 // «Tittel - Forfatter» (prøves omvendt), samlepakker «(1-3)» slås ikke opp.
 function bokFraNavn(navn) {
   let år = '';
-  let s = String(navn).replace(/_+/g, ' ');
+  // Årstallsspenn i tittelen («Dynastiet Romanov 1613-1918», «1939-1945») hører til tittelen:
+  // ikke år, ikke samlepakke. Bindestreken byttes med tankestrek, så reglene under lar det være.
+  let s = String(navn).replace(/_+/g, ' ')
+    .replace(/(^|[^\d])(1\d{3}|20\d{2})\s*-\s*(1\d{3}|20\d{2})(?!\d)/g, (m, f, a, b) => (+a < +b ? `${f}${a}–${b}` : m));
   const pakke = /\(\s*\d+\s*-\s*\d+\s*\)|(^|\s)\d+\s*-\s*\d+(\s|$)|\bsamlet\b|\(samling\)|\bminipack\b/i.test(s) && !/\s-\s(19|20)\d{2}\s-\s/.test(s);
   s = s
     .replace(/\[[^\]]*\]|\{[^}]*\}/g, ' ')
