@@ -198,6 +198,9 @@ html.nbx-on .nbx-hero-wrap > h2 { display: none; }
 /* Lydbøker: undertittelen etter tittelen, Nasjonalbiblioteket-merke */
 .nbx-hero-undertittel { font-weight: 400; font-size: 18px; color: #dbe5ef; }
 .nbx-hero .nbx-id-nb i { background: #111; color: #fff; }
+/* Spill: Steam-merke, og det brede bildet når Steam ikke har stående cover */
+.nbx-hero .nbx-id-steam i { background: #1b2838; color: #66c0f4; }
+.nbx-hero.nbx-spill .nbx-hero-poster.nbx-bred { width: 280px; aspect-ratio: 460 / 215; }
 .nbx-hero-spor { max-width: 900px; }
 .nbx-hero ol.nbx-spor {
   margin: 2px 0 0;

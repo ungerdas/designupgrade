@@ -3,7 +3,8 @@
 //    svaret i 30 dager.
 // 2) Henter cover og albuminfo for musikk fra Deezer (og MusicBrainz), uten nøkkel.
 // 3) Henter omslag, omtale og oppleser for lydbøker fra Nasjonalbiblioteket, uten nøkkel.
-// 4) Bare under utvikling: laster utvidelsen på nytt når build.txt i mappen
+// 4) Henter cover, omtale og stikkord for spill fra Steam-butikken, uten nøkkel.
+// 5) Bare under utvikling: laster utvidelsen på nytt når build.txt i mappen
 //    endres. Den delen fjernes av tools/lag-utgave.py i den publiserte utgaven.
 
 const api = globalThis.browser ?? globalThis.chrome;
@@ -768,7 +769,227 @@ async function finnLydbok(msg) {
   return { ...data, tolket };
 }
 
+// ---------------------------------------------------------------------------
+// Spill: cover, omtale, stikkord, utvikler og utgivelsesdato fra Steam-butikken.
+// Ingen nøkkel. Bare tittelen fra releasenavnet (eller Steam-id-en fra en
+// Steam-lenke i beskrivelsen) sendes.
+// ---------------------------------------------------------------------------
+const STEAM_BUTIKK = 'https://store.steampowered.com';
+const STEAM_API = 'https://api.steampowered.com';
+const STEAM_BILDER = 'https://shared.akamai.steamstatic.com/store_item_assets/';
+const SPILL_V = 1;
+const steamKø = kø(300);
+
+// Ord som bare forteller om utgaven, plattformen eller hvem som pakket den
+// («Monkey» og «DLC» bare som del av slike uttrykk, så «Monkey Island» og «DLC Quest» står)
+const SPILL_STØY = new RegExp('\\b(?:' + [
+  'repack', 'repacks', 'fitgirl', 'fitgirlrepack', 'dodi', 'elamigos', 'kaos', 'xatab', '(?:hv\\s+)?monkey\\s+repack', 'hv\\s+repack', 'hypervisor\\s+bypass',
+  'multi\\d*', 'pal', 'ntsc', 'nordic', 'norsk', 'norwegian', 'eng', 'english', 'pc', 'pc-rom', 'windows', 'win64', 'x64', 'linux', 'macos',
+  'gog', 'iso', 'rom', 'nsw', 'ps[1-5]', 'psx2?', 'psp', 'wii', 'wiiu', 'wiirom', 'x360', 'xbox360', 'cusa\\d+', 'backport',
+  '\\d+\\s+dlcs?', 'all\\s+dlcs?', 'incl\\.?\\s+(?:all\\s+)?dlcs?', 'incl', 'proper', 'readnfo', 'cracked', 'crack', 'unlocked', 'emulators?',
+].join('|') + ')\\b', 'gi');
+const SPILL_PLATTFORM = [
+  [/\bps5\b/i, 'PS5'], [/\bps4\b|\bcusa\d+/i, 'PS4'], [/\bps3\b/i, 'PS3'], [/\bps2\b|\bpsx2\b/i, 'PS2'], [/\bpsx\b|\bps1\b/i, 'PS1'],
+  [/\bpsp\b/i, 'PSP'], [/\bnsw\b/i, 'Switch'], [/\bwii\s?u\b/i, 'Wii U'], [/\bwii(?:rom)?\b/i, 'Wii'],
+  [/\bx(?:box)?\s?360\b/i, 'Xbox 360'], [/\bmacos\b/i, 'Mac'], [/\blinux\b/i, 'Linux'],
+];
+// Utgavemerking som ikke gjør det til et annet spill
+const UTGAVE = /^(?:(?:the |digital )?(?:deluxe|complete|anniversary|definitive|ultimate|gold|premium|standard|enhanced|special|collectors|supporter|legendary|royal|launch|game of the year|goty|digital)(?: edition)?|edition|goty|game of the year|directors cut|year \d+ bundle)$/;
+
+// Tittel, år og plattform fra releasenavnet: «Euro Truck Simulator 2 v1.57.2.2s + 103 DLCs
+// [FitGirl Repack]» → «Euro Truck Simulator 2», «Forza.Horizon.6-RUNE» → «Forza Horizon 6»
+function spillFraNavn(navn) {
+  const original = String(navn).replace(/_/g, ' ');
+  const år = (original.match(/\((19[7-9]\d|20[0-4]\d)\)/) || [])[1] || '';
+  const plattform = (SPILL_PLATTFORM.find(([rx]) => rx.test(original)) || [])[1] || '';
+  let s = original
+    .replace(/\[[^\]]*\]|\([^)]*\)|\{[^}]*\}/g, ' ') // [DODI Repack], (v1.0.77, MULTi21), (1997)
+    .replace(/\s\+\s.*$/, '') // «+ 103 DLCs + Multiplayer»
+    .replace(/[\s.]with[\s.](?:v\d|update|backport|all\b|dlc).*$/i, '') // «with v1.05 BackPort»
+    .replace(/-\s*(?:fitgirl|dodi|elamigos|kaos|xatab)\b.*$/i, ' ') // «-FitGirl Repack»
+    .replace(/-[^\s-]+$/, ' '); // scenegruppen: «Factorio-CODEX»
+  // Versjon og bygg: «v1.57.2.2s», «Build 25724756», «Update.1», «91441»
+  s = s.replace(/(^|[\s.])v\d+(?:\.\d+)*[a-z]?(?=$|[\s.])/gi, ' ')
+    .replace(/(^|[\s.])(?:build|update)[\s.]?\d+(?=$|[\s.])/gi, ' ')
+    .replace(/(^|[\s.])\d{5,}(?=$|[\s.])/g, ' ');
+  // Scenenavn med punktum mellom ordene
+  if (!/\s/.test(s.trim()) || (s.match(/\w\.\w/g) || []).length >= 2) s = s.replace(/(?<=\S)\.(?=\S)/g, ' ');
+  s = s.replace(SPILL_STØY, ' ').replace(/\s+/g, ' ').replace(/^[\s\-–:,.]+|[\s\-–:,.]+$/g, '').trim();
+  const utenUtgave = s.replace(/[\s:–-]+(?:(?:the |digital )?(?:deluxe|complete|anniversary|definitive|ultimate|gold|premium|enhanced|special|collectors|supporter|legendary|royal|goty|game of the year)(?: edition)?|year \d+ bundle)$/i, '').trim();
+  return { tittel: s, utenUtgave: utenUtgave !== s ? utenUtgave : '', år, plattform };
+}
+
+const spillNorm = (s) => String(s || '').toLowerCase()
+  .replace(/ø/g, 'o').replace(/æ/g, 'ae').replace(/å/g, 'a').replace(/ß/g, 'ss').replace(/&/g, ' and ')
+  .normalize('NFD').replace(/\p{M}/gu, '')
+  .replace(/[™®©]/g, '').replace(/['‘’`´]/g, '')
+  .replace(/[^a-z0-9]+/g, ' ').trim()
+  .split(' ').map((w) => ROMERSK[w] || w).join(' ');
+
+// Hvor godt et navn hos Steam passer tittelen (0 = ikke samme spill)
+function spillPoeng(tittel, navn) {
+  const a = spillNorm(tittel);
+  const b = spillNorm(navn);
+  if (!a || !b) return 0;
+  if (a === b) return 100;
+  if (b.startsWith(a + ' ') && UTGAVE.test(b.slice(a.length + 1))) return 90; // «… Complete Edition» hos Steam
+  if (a.startsWith(b + ' ') && UTGAVE.test(a.slice(b.length + 1))) return 85; // «… Deluxe Edition» i releasen
+  const ordA = a.split(' ');
+  const ordB = b.split(' ');
+  if (ordA.length >= 2 && b.endsWith(' ' + a) && ordB.length - ordA.length <= 2) return 70; // «EA SPORTS FIFA 23»
+  if (ordB.length >= 4 && (' ' + a + ' ').includes(' ' + b + ' ')) return 60; // norsk og engelsk tittel i samme navn
+  return 0;
+}
+// Tall som romertall, for søket: Steam finner «Part I», men ikke «Part 1»
+const tilRomertall = (s) => s.replace(/(?<=\s)(10|[1-9])(?=$|\s)/g, (n) => ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'][+n]);
+
+function steam(url) {
+  return steamKø(async () => {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Steam ' + res.status); // 429 = for mange kall: prøv igjen senere
+    return res.json();
+  });
+}
+const steamSøk = (term) => steam(`${STEAM_BUTIKK}/api/storesearch/?${new URLSearchParams({ term, l: 'english', cc: 'NO' })}`)
+  .then((r) => (r?.items || []).filter((it) => it.type === 'app' && it.id && it.name));
+
+// Spillene med bilder, omtale, utgivelsesdato, anmeldelser og stikkord (på norsk der det finnes)
+async function steamVarer(ids) {
+  if (!ids.length) return [];
+  const input = {
+    ids: ids.map((appid) => ({ appid: Number(appid) })),
+    context: { language: 'norwegian', country_code: 'NO', steam_realm: 1 },
+    data_request: { include_assets: true, include_basic_info: true, include_release: true, include_reviews: true, include_tag_count: 8 },
+  };
+  const r = await steam(`${STEAM_API}/IStoreBrowseService/GetItems/v1/?${new URLSearchParams({ input_json: JSON.stringify(input) })}`);
+  return (r?.response?.store_items || []).filter((it) => it.success === 1 && it.name);
+}
+const steamId = (it) => it.appid || it.id;
+
+// Navnene på stikkordene, på norsk, husket en måned
+async function steamTagger() {
+  const lagret = (await api.storage.local.get('st:tagger'))['st:tagger'];
+  if (lagret && Date.now() - lagret.t < KEEP_DAYS * 864e5) return lagret.navn;
+  const r = await steam(`${STEAM_API}/IStoreService/GetTagList/v1/?language=norwegian`);
+  const navn = Object.fromEntries((r?.response?.tags || []).map((t) => [t.tagid, t.name]));
+  if (Object.keys(navn).length) await api.storage.local.set({ 'st:tagger': { t: Date.now(), navn } });
+  return navn;
+}
+
+// Årene Steam oppgir (først utgitt, først på Steam, nå på Steam), til å sjekke året i releasen
+const spillÅr = (it) => ['original_release_date', 'original_steam_release_date', 'steam_release_date']
+  .map((k) => it.release?.[k]).filter(Boolean).map((t) => new Date(t * 1000).getUTCFullYear());
+
+// Søk på tittelen (og uten utgavemerking), og velg navnet som passer: det engelske fra søket
+// eller det norske fra Steam (som «Flåklypa Grand Prix» for «Pinchcliffe Grand Prix»).
+// Året sjekkes når releasen har ett. Finnes bare tillegg med samme navnestart, som
+// «Football Manager 26 In-Game Editor», brukes spillet de hører til.
+async function velgSpill(p) {
+  const titler = [p.tittel, p.utenUtgave].filter(Boolean);
+  const poeng = (navn) => Math.max(...titler.map((t) => spillPoeng(t, navn)));
+  const passer = (it) => !p.år || !spillÅr(it).length || spillÅr(it).some((å) => Math.abs(å - Number(p.år)) <= 1);
+  for (const tittel of titler) {
+    // Steam finner ikke «Endling - Extinction is Forever» med bindestreken, og ikke «Part 1» for «Part I»
+    const term = tittel.replace(/\s+[-–]\s+|:/g, ' ').replace(/\s+/g, ' ').trim();
+    let treff = await steamSøk(term);
+    if (!treff.length && tilRomertall(term) !== term) treff = await steamSøk(tilRomertall(term));
+    if (!treff.length) continue;
+    const engelsk = Object.fromEntries(treff.map((it) => [it.id, it.name]));
+    const varer = await steamVarer(treff.slice(0, 5).map((it) => it.id));
+    const navn = (v) => [v.name, engelsk[steamId(v)] || ''];
+    const best = varer.map((v) => ({ v, p: Math.max(...navn(v).map(poeng)) }))
+      .filter((k) => k.p > 0 && passer(k.v)).sort((a, b) => b.p - a.p)[0];
+    if (best) return best.v;
+    const start = spillNorm(tittel) + ' ';
+    const tillegg = varer.filter((v) => navn(v).some((n) => spillNorm(n).startsWith(start)));
+    const foreldre = [...new Set(tillegg.map((v) => v.related_items?.parent_appid || 0))];
+    if (tillegg.length && foreldre.length === 1 && foreldre[0]) {
+      const [far] = await steamVarer(foreldre);
+      if (far && passer(far)) return far;
+    }
+  }
+  return null;
+}
+
+// «EA Canada &amp; EA Romania» → «EA Canada & EA Romania»
+const ENTITET = { amp: '&', quot: '"', '#39': "'", apos: "'", lt: '<', gt: '>' };
+const rensTekst = (s) => String(s || '').replace(/&(amp|quot|#39|apos|lt|gt);/g, (_, e) => ENTITET[e]).trim();
+
+const steamBilde = (it, fil) => (fil && it?.assets?.asset_url_format ? STEAM_BILDER + it.assets.asset_url_format.replace('${FILENAME}', fil) : '');
+
+async function spillData(it) {
+  const a = it.assets || {};
+  // Stående cover (som en filmplakat). Tillegg uten eget bruker spillets.
+  let kilde = it;
+  if (!a.library_capsule && it.related_items?.parent_appid) {
+    const [far] = await steamVarer([it.related_items.parent_appid]).catch(() => []);
+    if (far?.assets?.library_capsule) kilde = far;
+  }
+  const stående = !!kilde.assets?.library_capsule;
+  const cover = stående ? steamBilde(kilde, kilde.assets.library_capsule_2x || kilde.assets.library_capsule) : steamBilde(it, a.header || a.main_capsule);
+  const tagger = await steamTagger().catch(() => ({}));
+  const bi = it.basic_info || {};
+  const anm = it.reviews?.summary_filtered;
+  const rel = it.release || {};
+  const id = steamId(it);
+  return {
+    source: 'steam', v: SPILL_V, appid: id, name: rensTekst(it.name).replace(/\s*[™®]/g, ''), dlc: it.type === 4,
+    cover, thumb: stående ? steamBilde(kilde, kilde.assets.library_capsule) : cover, wide: !stående && !!cover,
+    hero: steamBilde(it, a.library_hero) || steamBilde(kilde, kilde.assets?.library_hero),
+    description: rensTekst(bi.short_description),
+    developers: (bi.developers || []).map((d) => rensTekst(d.name)).filter(Boolean),
+    publishers: (bi.publishers || []).map((d) => rensTekst(d.name)).filter(Boolean),
+    released: rel.original_release_date || rel.steam_release_date || 0, // første utgivelse, også før Steam
+    reviews: anm?.review_count ? { percent: anm.percent_positive, count: anm.review_count, label: anm.review_score_label || '' } : null,
+    tags: (it.tagids || []).map((t) => tagger[t]).filter(Boolean).slice(0, 4),
+    link: `${STEAM_BUTIKK}/app/${id}/`,
+  };
+}
+
+async function harSteam() {
+  try { return await api.permissions.contains({ origins: [STEAM_BUTIKK + '/*', STEAM_API + '/*'] }); } catch { return true; }
+}
+
+async function finnSpill(msg) {
+  const p = spillFraNavn(String(msg.navn || '').slice(0, 300));
+  const tolket = { title: p.tittel, year: p.år, platform: p.plattform };
+  let appid = /^\d{1,9}$/.test(String(msg.appid ?? '')) ? Number(msg.appid) : 0;
+  if (!appid && spillNorm(p.tittel).length < 2) return { source: 'none', tolket };
+  if (!(await harSteam())) return { source: 'none', tolket, manglerTilgang: true };
+  const fersk = (l) => l && Date.now() - l.t < (l.miss ? MISS_DAYS : KEEP_DAYS) * 864e5;
+  let it = null;
+  if (!appid) {
+    // Treffet for tittelen huskes, så søket ikke gjøres på nytt
+    const nøkkel = 'sp:' + spillNorm(p.tittel) + (p.år ? '|' + p.år : '');
+    const lagret = (await api.storage.local.get(nøkkel))[nøkkel];
+    if (fersk(lagret) && lagret.miss) return { source: 'none', tolket };
+    if (fersk(lagret)) appid = lagret.id;
+    else {
+      try { it = await velgSpill(p); } catch { return { source: 'none', tolket }; } // nettverk eller for mange kall: prøv igjen neste gang
+      await api.storage.local.set({ [nøkkel]: it ? { t: Date.now(), id: steamId(it) } : { t: Date.now(), miss: true } });
+      if (!it) return { source: 'none', tolket };
+      appid = steamId(it);
+    }
+  }
+  const dk = 'sa:' + appid;
+  const lagret = (await api.storage.local.get(dk))[dk];
+  if (fersk(lagret) && (lagret.miss || lagret.data?.v === SPILL_V)) return lagret.miss ? { source: 'none', tolket } : { ...lagret.data, tolket };
+  let data = null;
+  try {
+    if (!it) [it] = await steamVarer([appid]);
+    data = it ? await spillData(it) : null;
+  } catch {
+    return { source: 'none', tolket };
+  }
+  await api.storage.local.set({ [dk]: data ? { t: Date.now(), data } : { t: Date.now(), miss: true } });
+  return data ? { ...data, tolket } : { source: 'none', tolket };
+}
+
 api.runtime.onMessage.addListener((msg, _sender, reply) => {
+  if (msg?.type === 'spill' && (msg.navn || msg.appid)) {
+    finnSpill(msg).then(reply, (e) => reply({ error: String(e) }));
+    return true;
+  }
   if (msg?.type === 'lydbok' && msg.navn) {
     finnLydbok(msg).then(reply, (e) => reply({ error: String(e) }));
     return true;
@@ -796,7 +1017,7 @@ api.runtime.onMessage.addListener((msg, _sender, reply) => {
   }
   if (msg?.type === 'tom-buffer') {
     api.storage.local.get(null).then(async (all) => {
-      const keys = Object.keys(all).filter((k) => /^(f|s|t|e|mu|lb):/.test(k));
+      const keys = Object.keys(all).filter((k) => /^(f|s|t|e|mu|lb|sp|sa|st):/.test(k));
       if (keys.length) await api.storage.local.remove(keys);
       reply({ removed: keys.length });
     });

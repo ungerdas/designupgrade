@@ -457,3 +457,7 @@ table.nbx-list a.nbx-thumb.nbx-kvadrat img {
   box-shadow: 0 1px 4px rgba(0, 0, 0, .5);
 }
 .nbx-stor-plakat.nbx-kvadrat { width: 300px; height: 300px; }
+/* Spill uten stående cover hos Steam: det brede bildet midt i feltet, på samme måte */
+.nbx-kort a.nbx-kort-plakat.nbx-kvadrat.nbx-bred img,
+table.nbx-list a.nbx-thumb.nbx-kvadrat.nbx-bred img { aspect-ratio: 460 / 215; }
+.nbx-stor-plakat.nbx-bred { width: 460px; height: 215px; }

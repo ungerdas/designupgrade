@@ -20,7 +20,7 @@ api.storage.local.get({ enabled: true, morktTema: false, morkModus: '', skjulSpr
 });
 box.addEventListener('change', () => api.storage.local.set({ enabled: box.checked }));
 // Firefox gir ikke nye vertstillatelser ved oppdatering: knappen vises bare når de mangler
-const TILGANG = { origins: ['https://api.deezer.com/*', 'https://musicbrainz.org/*', 'https://api.nb.no/*'] };
+const TILGANG = { origins: ['https://api.deezer.com/*', 'https://musicbrainz.org/*', 'https://api.nb.no/*', 'https://store.steampowered.com/*', 'https://api.steampowered.com/*'] };
 api.permissions.contains(TILGANG).then((ok) => { $('tilgang').hidden = ok; }).catch(() => {});
 $('gi-tilgang').addEventListener('click', () => {
   api.permissions.request(TILGANG).then((ok) => { if (ok) $('tilgang').hidden = true; }).catch(() => {});

@@ -67,23 +67,39 @@
     }
   }
 
-  // TMDB-lenke i beskrivelsen (f.eks. «TMDB.......: https://www.themoviedb.org/tv/243518»).
-  // Bare i selve beskrivelsen, så lenker i kommentarer ikke tas med. Lenkene går via
-  // redir.php?url=… og er kodet der, så både adressen og teksten leses.
-  function tmdbFraBeskrivelse(details) {
+  // Lenker, bilder og tekst i selve beskrivelsen, så lenker i kommentarer ikke tas med.
+  // Lenkene går via redir.php?url=… og er kodet der, så både adressen og teksten leses.
+  function beskrivelsesKilder(details) {
     const tittel = [...details.querySelectorAll('li.title')].find((li) => /\bbeskrivelse\b/i.test(txt(li)));
     const item = tittel?.nextElementSibling;
-    if (!item) return null;
-    const kilder = [...item.querySelectorAll('a[href]')].map((a) => {
-      const h = a.getAttribute('href') || '';
+    if (!item) return [];
+    const kilder = [...item.querySelectorAll('a[href], img[src]')].map((el) => {
+      const h = el.getAttribute('href') || el.getAttribute('src') || '';
       try { return decodeURIComponent(h); } catch { return h; }
     });
     kilder.push(item.textContent);
-    for (const k of kilder) {
+    return kilder;
+  }
+
+  // TMDB-lenke i beskrivelsen (f.eks. «TMDB.......: https://www.themoviedb.org/tv/243518»)
+  function tmdbFraBeskrivelse(details) {
+    for (const k of beskrivelsesKilder(details)) {
       const m = k.match(/themoviedb\.org\/(movie|tv)\/(\d{1,9})/i);
       if (m) return { kind: m[1].toLowerCase(), id: m[2] };
     }
     return null;
+  }
+
+  // Steam-id fra en lenke til Steam-butikken i beskrivelsen, ellers fra et bilde hentet fra Steam
+  function steamFraBeskrivelse(details) {
+    const kilder = beskrivelsesKilder(details);
+    for (const rx of [/store\.steampowered\.com\/(?:agecheck\/)?app\/(\d{1,9})/i, /steamcommunity\.com\/app\/(\d{1,9})/i, /steamstatic\.com\/(?:store_item_assets\/)?steam\/apps\/(\d{1,9})\//i]) {
+      for (const k of kilder) {
+        const m = k.match(rx);
+        if (m) return m[1];
+      }
+    }
+    return '';
   }
 
   // Tittel og år fra releasenavnet, brukt til data er hentet (og uten treff)
@@ -327,6 +343,66 @@
     else if (plot && ferdig) plot.remove();
   }
 
+  // ---------- 5) Spill ----------
+  // Cover, omtale, stikkord, utvikler og utgivelsesdato fra Steam. Plattformen fra releasenavnet.
+  const PLATTFORM = { PS1: 'PlayStation', PS2: 'PlayStation 2', PS3: 'PlayStation 3', PS4: 'PlayStation 4', PS5: 'PlayStation 5', Switch: 'Nintendo Switch' };
+  function fyllSpill(hero, s, navn) {
+    hero.classList.remove('nbx-loading');
+    const t = s.tolket || {};
+    const funnet = s.source === 'steam';
+    const tittel = (funnet ? s.name : t.title) || navn;
+    // Datoen slik Steam viser den (butikkens tid, ikke norsk tid)
+    const dato = funnet && s.released ? new Date(s.released * 1000) : null;
+    const STEAM_TID = { timeZone: 'America/Los_Angeles' };
+    const år = dato ? dato.toLocaleDateString('nb-NO', { ...STEAM_TID, year: 'numeric' }) : t.year;
+    settHtml(hero.querySelector('.nbx-hero-title'), `${esc(tittel)}${år ? ` <span class="nbx-hero-year">(${esc(år)})</span>` : ''}`);
+
+    const poster = hero.querySelector('.nbx-hero-poster');
+    if (funnet && s.cover) {
+      const img = new Image();
+      img.alt = '';
+      img.decoding = 'async';
+      img.onload = () => {
+        poster.replaceChildren(img);
+        poster.classList.add('nbx-has-img');
+        if (s.wide) poster.classList.add('nbx-bred');
+      };
+      img.onerror = () => poster.classList.add('nbx-noimg');
+      img.src = s.cover;
+      // Bakgrunnsbildet fra Steam-biblioteket, ellers coveret uskarpt
+      const bg = hero.querySelector('.nbx-hero-bg');
+      bg.style.backgroundImage = `url("${String(s.hero || s.cover).replace(/["\\]/g, '')}")`;
+      if (!s.hero) bg.classList.add('nbx-blur');
+    } else {
+      poster.classList.add('nbx-noimg');
+    }
+
+    const linje = [`<b>${funnet && s.dlc ? 'Tillegg' : 'Spill'}</b>`];
+    if (t.platform) linje.push(esc(PLATTFORM[t.platform] || t.platform));
+    if (funnet) {
+      const utviklere = s.developers || [];
+      if (utviklere.length) linje.push(`<span title="Utvikler">${esc(utviklere.slice(0, 2).join(', '))}</span>`);
+      const utgiver = (s.publishers || []).find((u) => !utviklere.includes(u));
+      if (utgiver) linje.push(`<span title="Utgiver">${esc(utgiver)}</span>`);
+      if (dato) linje.push(`Utgitt ${esc(dato.toLocaleDateString('nb-NO', { ...STEAM_TID, day: 'numeric', month: 'long', year: 'numeric' }))}`);
+    }
+    settHtml(hero.querySelector('.nbx-hero-status'), linje.map((x) => `<span>${x}</span>`).join(''));
+
+    const badges = [];
+    if (funnet && s.reviews) {
+      const om = `${s.reviews.label ? s.reviews.label + ' · ' : ''}${Number(s.reviews.count).toLocaleString('nb-NO')} anmeldelser på Steam`;
+      badges.push(`<span class="nbx-b nbx-b-vote" title="${esc(om)}">${esc(s.reviews.percent)} % positive</span>`);
+    }
+    (funnet ? s.tags || [] : []).forEach((g) => badges.push(`<span class="nbx-b nbx-b-genre">${esc(g)}</span>`));
+    if (funnet) badges.push(idBadge('steam', 'Steam', String(s.appid), s.link));
+    settHtml(hero.querySelector('.nbx-hero-badges'), badges.join(''));
+
+    const plot = hero.querySelector('.nbx-hero-plot');
+    if (funnet && s.description) plot.textContent = s.description;
+    else if (!funnet && s.manglerTilgang) settHtml(plot, '<span class="nbx-hint">Klikk på Designupgrade-ikonet og «Gi tilgang» for å få cover og info fra Steam.</span>');
+    else plot.remove();
+  }
+
   NBX.liste.push({
     navn: 'Plakat og handling på torrentsiden',
     sider: ['details'],
@@ -341,6 +417,7 @@
       const inf = info(details);
       const erMusikk = /^musikk$/i.test(inf['kategori'] || '');
       const erLydbok = /^lydb/i.test(inf['kategori'] || '');
+      const erSpill = /^spill$/i.test(inf['kategori'] || '');
       const dl = details.querySelector('a[href*="download.php"]');
       const peers = txt([...details.querySelectorAll('li.title')].find((li) => /seedere?/i.test(txt(li))));
       const seed = (peers.match(/(\d+)\s*seedere?/i) || [])[1];
@@ -354,12 +431,12 @@
       ].filter(Boolean).join('');
 
       const hero = document.createElement('section');
-      hero.className = 'nbx-hero nbx-loading' + (erMusikk ? ' nbx-musikk' : erLydbok ? ' nbx-bok' : '');
+      hero.className = 'nbx-hero nbx-loading' + (erMusikk ? ' nbx-musikk' : erLydbok ? ' nbx-bok' : erSpill ? ' nbx-spill' : '');
       settHtml(hero, `
         <div class="nbx-hero-bg"></div>
         <div class="nbx-hero-poster"><span>${esc(inf['kategori'] || '')}</span></div>
         <div class="nbx-hero-main">
-          <div class="nbx-hero-title">${erMusikk || erLydbok ? '' : `${esc(rel.title)}${rel.year ? ` <span class="nbx-hero-year">(${esc(rel.year)})</span>` : ''}`}</div>
+          <div class="nbx-hero-title">${erMusikk || erLydbok || erSpill ? '' : `${esc(rel.title)}${rel.year ? ` <span class="nbx-hero-year">(${esc(rel.year)})</span>` : ''}`}</div>
           <div class="nbx-hero-status"></div>
           <div class="nbx-hero-badges"></div>
           <p class="nbx-hero-plot"></p>
@@ -386,6 +463,17 @@
           m = (await spør(true)) || m;
         }
         fyllMusikk(hero, m || { source: 'none' }, name);
+        return;
+      }
+      if (erSpill) {
+        // Steam-lenke i beskrivelsen først, ellers søk på tittelen. Id-en huskes for
+        // torrenten, så kortet i lista får samme cover.
+        const appid = steamFraBeskrivelse(details);
+        if (appid) api.storage.local.set({ ['g:' + tid]: appid }).catch(() => {});
+        else api.storage.local.remove('g:' + tid).catch(() => {});
+        let s = null;
+        try { s = await api.runtime.sendMessage({ type: 'spill', navn: name, appid }); } catch { s = null; }
+        fyllSpill(hero, s && !s.error ? s : { source: 'none' }, name);
         return;
       }
       if (erLydbok) {

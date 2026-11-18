@@ -175,9 +175,10 @@
   // ---------- Plakat-kø ----------
   const posters = { waiting: new Map(), active: 0 };
   // q = { tmdb?, imdb?, title?, year?, kind? }: TMDB-id (lært på torrentsiden) først, så
-  // IMDb-id, ellers (eller i tillegg) tittelsøk hos TMDB
+  // IMDb-id, ellers (eller i tillegg) tittelsøk hos TMDB. Musikk, lydbøker og spill har
+  // releasenavnet i q.musikk, q.bok og q.spill (spill også Steam-id lært på torrentsiden).
   function wantPoster(q, thumb) {
-    const k = q.musikk ? 'mu|' + q.musikk : q.bok ? 'lb|' + q.bok : q.tmdb ? `tm|${q.tmdb.kind}/${q.tmdb.id}` : q.imdb || ['t', q.kind, q.title, q.year].join('|');
+    const k = q.spill ? 'sp|' + (q.spillId || q.spill) : q.musikk ? 'mu|' + q.musikk : q.bok ? 'lb|' + q.bok : q.tmdb ? `tm|${q.tmdb.kind}/${q.tmdb.id}` : q.imdb || ['t', q.kind, q.title, q.year].join('|');
     if (!posters.waiting.has(k)) posters.waiting.set(k, { q, thumbs: [] });
     posters.waiting.get(k).thumbs.push(thumb);
     pumpPosters();
@@ -188,8 +189,9 @@
       posters.waiting.delete(k);
       posters.active++;
       // Musikk: cover fra Deezer/MusicBrainz (kvadratisk). Lydbøker: omslag fra
-      // Nasjonalbiblioteket. Ellers plakat fra TMDB.
-      const melding = q.musikk ? { type: 'musikk', navn: q.musikk } : q.bok ? { type: 'lydbok', navn: q.bok } : { type: 'film', ...q };
+      // Nasjonalbiblioteket. Spill: cover fra Steam. Ellers plakat fra TMDB.
+      const melding = q.spill ? { type: 'spill', navn: q.spill, appid: q.spillId } : q.musikk ? { type: 'musikk', navn: q.musikk }
+        : q.bok ? { type: 'lydbok', navn: q.bok } : { type: 'film', ...q };
       api.runtime.sendMessage(melding).then((f) => {
         const url = f && (f.thumb || f.poster);
         if (!url) return;
@@ -207,6 +209,13 @@
               if (f.artist || f.title) t.title = [f.artist, f.kind === 'artist' ? '' : f.title].filter(Boolean).join(' – ');
             }
             if (q.bok && (f.author || f.title)) t.title = [f.author, f.title].filter(Boolean).join(' – ');
+            if (q.spill && f.name) t.title = f.name;
+            // Spill uten stående cover hos Steam: det brede bildet midt i feltet, som musikkcover
+            if (q.spill && f.wide) {
+              t.classList.add('nbx-kvadrat', 'nbx-bred');
+              t.dataset.bred = '1';
+              t.style.setProperty('--cover', `url("${img.src.replace(/["\\]/g, '')}")`);
+            }
             t.parentElement?.classList.add('nbx-has-poster');
           };
           // Cover Art Archive mangler av og til miniatyren: prøv originalbildet
@@ -233,9 +242,10 @@
       skjulStor();
       const r = a.getBoundingClientRect();
       const kvadrat = !!a.dataset.kvadrat; // musikkcover
-      const B = kvadrat ? 300 : 230, H = kvadrat ? 300 : 345, luft = 12;
+      const bred = !!a.dataset.bred; // spill med bare bredt bilde
+      const B = bred ? 460 : kvadrat ? 300 : 230, H = bred ? 215 : kvadrat ? 300 : 345, luft = 12;
       const el = document.createElement('div');
-      el.className = 'nbx-stor-plakat' + (kvadrat ? ' nbx-kvadrat' : '');
+      el.className = 'nbx-stor-plakat' + (bred ? ' nbx-bred' : kvadrat ? ' nbx-kvadrat' : '');
       const img = new Image();
       img.alt = '';
       img.src = a.dataset.stor;
@@ -659,6 +669,8 @@
       // Musikk: cover og albuminfo slås opp fra releasenavnet (bakgrunnen tolker det)
       if (/^musikk$/i.test(cat) && !erOnske && !alternativ) q.musikk = a.getAttribute('title') || a.textContent.trim();
       if (/^lydb/i.test(cat) && !erOnske && !alternativ) q.bok = a.getAttribute('title') || a.textContent.trim();
+      // Spill: cover fra Steam, slått opp på tittelen i releasenavnet
+      if (/^spill$/i.test(cat) && !erOnske && !alternativ) q.spill = a.getAttribute('title') || a.textContent.trim();
 
       if (kortmodus) {
         const d = erOnske ? lesOnske(tr, keys) : lesRad(tr, keys);
@@ -695,13 +707,15 @@
   // Lagrede språk med en gang, plakat når kortet nærmer seg skjermen og
   // MediaInfo når det faktisk vises. rows: [{ el, tid, q, thumb, langs, done }]
   async function følgRader(rows) {
-    // Språk vi allerede kjenner (bare torrenter), og TMDB-id-er lært på torrentsiden
-    // (TMDB-lenke i beskrivelsen), så kortet får samme plakat som torrentsiden
+    // Språk vi allerede kjenner (bare torrenter), og TMDB- og Steam-id-er lært på torrentsiden
+    // (lenke i beskrivelsen), så kortet får samme plakat som torrentsiden
     const medTid = rows.filter((r) => r.tid);
-    const known = medTid.length ? await api.storage.local.get(medTid.flatMap((r) => ['m:' + r.tid, 'k:' + r.tid])) : {};
+    const known = medTid.length ? await api.storage.local.get(medTid.flatMap((r) => ['m:' + r.tid, 'k:' + r.tid, 'g:' + r.tid])) : {};
     for (const r of medTid) {
       const tm = String(known['k:' + r.tid] || '').match(/^(movie|tv)\/(\d{1,9})$/);
-      if (tm && !r.utenPlakat && !r.q.musikk && !r.q.bok) r.q.tmdb = { kind: tm[1], id: tm[2] };
+      if (tm && !r.utenPlakat && !r.q.musikk && !r.q.bok && !r.q.spill) r.q.tmdb = { kind: tm[1], id: tm[2] };
+      const steamId = String(known['g:' + r.tid] || '');
+      if (r.q.spill && /^\d{1,9}$/.test(steamId)) r.q.spillId = steamId;
       const m = known['m:' + r.tid];
       if (m) { r.done = true; settHtml(r.langs, langsHtml(m)); }
       if (!mi.rows.has(r.tid)) mi.rows.set(r.tid, []);
@@ -715,7 +729,7 @@
         if (!e.isIntersecting) continue;
         near.unobserve(e.target);
         const r = byEl.get(e.target);
-        if (r && (r.q.tmdb || r.q.imdb || r.q.title || r.q.musikk || r.q.bok)) wantPoster(r.q, r.thumb);
+        if (r && (r.q.tmdb || r.q.imdb || r.q.title || r.q.musikk || r.q.bok || r.q.spill)) wantPoster(r.q, r.thumb);
       }
     }, { rootMargin: '800px 0px' });
     const seen = new IntersectionObserver((entries) => {
