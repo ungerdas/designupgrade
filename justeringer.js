@@ -110,22 +110,54 @@
     if (hint === 'morkere') root.classList.add('nbx-tema-morkere');
   } catch {}
 
-  // Tekst som er UTF-8 men er lest som ISO-8859-1 («fÃ¥tt» → «fått»).
+  // Tekst som er UTF-8, men er lest som noe annet. Malene (ajax.php?a=tpl) leses som
+  // ISO-8859-1/windows-1252 («fÃ¥tt» → «fått»). Filer, Alternativer og peers på torrentsiden
+  // (ajax_details.php) leses som ISO-8859-15 («HusdrÃžmmen» → «Husdrømmen»): navn fra
+  // databasen er UTF-8 der, mens sidens egen tekst er riktig og blir stående.
   // Rører bare tekst som hele veien kan leses tilbake som gyldig UTF-8.
+  const ISO15 = { 0x20AC: 0xA4, 0x0160: 0xA6, 0x0161: 0xA8, 0x017D: 0xB4, 0x017E: 0xB8, 0x0152: 0xBC, 0x0153: 0xBD, 0x0178: 0xBE };
   const CP1252 = { 0x20AC: 0x80, 0x201A: 0x82, 0x0192: 0x83, 0x201E: 0x84, 0x2026: 0x85, 0x2020: 0x86, 0x2021: 0x87, 0x02C6: 0x88,
     0x2030: 0x89, 0x0160: 0x8A, 0x2039: 0x8B, 0x0152: 0x8C, 0x017D: 0x8E, 0x2018: 0x91, 0x2019: 0x92, 0x201C: 0x93, 0x201D: 0x94,
     0x2022: 0x95, 0x2013: 0x96, 0x2014: 0x97, 0x02DC: 0x98, 0x2122: 0x99, 0x0161: 0x9A, 0x203A: 0x9B, 0x0153: 0x9C, 0x017E: 0x9E, 0x0178: 0x9F };
   function fiksTegn(tekst) {
-    if (!/[\u00C2\u00C3][\u0080-\u00BF\u0152-\u2122]/.test(tekst)) return tekst;
-    const bytes = [];
-    for (const ch of tekst) {
-      const c = ch.codePointAt(0);
-      if (c < 0x100) bytes.push(c);
-      else if (CP1252[c] !== undefined) bytes.push(CP1252[c]);
-      else return tekst;
+    if (!/[\u00C2-\u00F4][\u0080-\u00BF\u0152-\u2122]/.test(tekst)) return tekst;
+    for (const tabell of [ISO15, CP1252]) {
+      const bytes = [];
+      let ok = true;
+      for (const ch of tekst) {
+        const c = ch.codePointAt(0);
+        const b = c < 0x100 ? c : tabell[c];
+        if (b === undefined) { ok = false; break; }
+        bytes.push(b);
+      }
+      if (!ok) continue;
+      try { return new TextDecoder('utf-8', { fatal: true }).decode(new Uint8Array(bytes)); } catch {}
     }
-    try { return new TextDecoder('utf-8', { fatal: true }).decode(new Uint8Array(bytes)); } catch { return tekst; }
+    return tekst;
   }
+  // Retter tekst og title/alt i det som er satt inn
+  function fiksTegnI(rot) {
+    if (rot.nodeType === Node.TEXT_NODE) {
+      const ny = fiksTegn(rot.nodeValue);
+      if (ny !== rot.nodeValue) rot.nodeValue = ny;
+      return;
+    }
+    if (rot.nodeType !== Node.ELEMENT_NODE) return;
+    const gå = document.createTreeWalker(rot, NodeFilter.SHOW_TEXT);
+    for (let n = gå.nextNode(); n; n = gå.nextNode()) {
+      const ny = fiksTegn(n.nodeValue);
+      if (ny !== n.nodeValue) n.nodeValue = ny;
+    }
+    for (const el of [rot, ...rot.querySelectorAll('[title], [alt]')]) {
+      for (const navn of ['title', 'alt']) {
+        const v = el.getAttribute(navn);
+        if (!v) continue;
+        const ny = fiksTegn(v);
+        if (ny !== v) el.setAttribute(navn, ny);
+      }
+    }
+  }
+  NBX.fiksTegnI = fiksTegnI; // liste.js retter Alternativer før de blir kort
 
   const JUSTERINGER = [
     // Hver justering er et objekt. «sider» er valgfritt (utelates = alle sider).
@@ -149,6 +181,19 @@
             }, 120);
           });
         }
+      },
+    },
+
+    {
+      navn: 'Rett æøå i Filer, Alternativer og peers på torrentsiden',
+      // Siden henter dem fra ajax_details.php og leser svaret som ISO-8859-15, men navn på
+      // torrenter, filer og brukere kommer som UTF-8 («HusdrÃžmmen»). Rettes når de settes inn.
+      sider: ['details'],
+      kjør() {
+        const details = document.getElementById('details') || document.body;
+        new MutationObserver((endringer) => {
+          for (const e of endringer) for (const n of e.addedNodes) fiksTegnI(n);
+        }).observe(details, { childList: true, subtree: true });
       },
     },
 

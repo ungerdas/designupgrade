@@ -936,7 +936,12 @@
     kjør() {
       const details = document.getElementById('details');
       if (!details) return;
-      const finn = () => details.querySelectorAll('table.torrentTable:not([data-nbx])').forEach((t) => { if (erAlternativ(t)) forbered(t, { alternativ: true }); });
+      // æøå rettes først (justeringer.js), så kortene får riktige navn
+      const finn = () => details.querySelectorAll('table.torrentTable:not([data-nbx])').forEach((t) => {
+        if (!erAlternativ(t)) return;
+        NBX.fiksTegnI?.(t);
+        forbered(t, { alternativ: true });
+      });
       finn();
       new MutationObserver(finn).observe(details, { childList: true, subtree: true });
       hentAlternativer(details);
