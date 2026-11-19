@@ -1,0 +1,18 @@
+{
+  "addons": {
+    "{898ab047-9f43-4de9-9391-aae997a82e6b}": {
+      "updates": [
+        {
+          "version": "3.12.1",
+          "update_link": "https://github.com/ungerdas/designupgrade/releases/download/v3.12.1/designupgrade-3.12.1.xpi",
+          "update_hash": "sha256:4080216e915ab1e0fe6028677f18607a4f88c5fab2fcefdaadb4f48a2c95584d",
+          "applications": {
+            "gecko": {
+              "strict_min_version": "142.0"
+            }
+          }
+        }
+      ]
+    }
+  }
+}
