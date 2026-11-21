@@ -390,6 +390,48 @@
     return ut;
   }
 
+  // ---------- Godkjenning (approve.php) ----------
+  // Samme adresser som sidens egne knapper på torrentsiden. «Forkast» må trykkes to ganger.
+  const GODKJ_IKON = { ja: '<path d="m5 12 4.5 4.5L19 7"/>', nei: '<path d="M6 6l12 12M18 6 6 18"/>' };
+  function godkjennKnapper(tid) {
+    const boks = document.createElement('span');
+    boks.className = 'nbx-godkj';
+    const knapp = (klasse, tekst, ikon, tittel) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = klasse;
+      b.title = tittel;
+      settHtml(b, `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${GODKJ_IKON[ikon]}</svg><span>${esc(tekst)}</span>`);
+      boks.append(b);
+      return b;
+    };
+    const gå = (adresse) => {
+      boks.querySelectorAll('button').forEach((b) => { b.disabled = true; });
+      location.href = adresse;
+    };
+    knapp('nbx-godkjenn', 'Godkjenn', 'ja', 'Godkjenn').addEventListener('click', () => gå(`/approval.php?id=${tid}`));
+    const forkast = knapp('nbx-forkast', 'Forkast', 'nei', 'Forkast');
+    let frist = 0;
+    const tilbake = () => {
+      forkast.classList.remove('nbx-bekreft');
+      forkast.querySelector('span').textContent = 'Forkast';
+      forkast.title = 'Forkast';
+    };
+    forkast.addEventListener('click', () => {
+      if (forkast.classList.contains('nbx-bekreft')) {
+        clearTimeout(frist);
+        gå(`/approval.php?id=${tid}&delete=1`);
+        return;
+      }
+      forkast.classList.add('nbx-bekreft');
+      forkast.querySelector('span').textContent = 'Bekreft forkast';
+      forkast.title = 'Trykk igjen for å forkaste';
+      frist = setTimeout(tilbake, 4000);
+    });
+    return boks;
+  }
+  const godkjenningsside = () => NBX.side === 'approve';
+
   function lagKort(d) {
     const k = KAT[d.cat.toLowerCase()] || [d.cat.toUpperCase().slice(0, 7), '#496686'];
     const navnRes = ((d.name.match(NAVN_RES) || [])[1] || '').toLowerCase();
@@ -434,6 +476,10 @@
       settHtml(d.dl, `Last ned ${ikon('dl')}`);
       if (!d.dl.title) d.dl.title = 'Last ned';
       knapper.append(d.dl);
+    }
+    if (godkjenningsside() && /^\d+$/.test(String(d.tid || ''))) {
+      knapper.insertBefore(godkjennKnapper(d.tid), knapper.querySelector('.nbx-lastned'));
+      knapper.classList.add('nbx-med-godkj');
     }
     return kort;
   }
@@ -697,6 +743,11 @@
         langs = document.createElement('div');
         langs.className = 'nbx-langs';
         a.closest('td').append(langs);
+      }
+      if (godkjenningsside() && tid) {
+        const g = godkjennKnapper(tid);
+        g.classList.add('nbx-godkj-tabell');
+        a.closest('td').append(g);
       }
       rows.push({ el: tr, tid, q, thumb, langs, done: erOnske });
     });
