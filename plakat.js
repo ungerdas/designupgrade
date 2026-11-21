@@ -403,6 +403,56 @@
     else plot.remove();
   }
 
+  // ---------- 6) Sidens egne knapper for godkjenning ----------
+  // Når siden viser «Godkjenn» og «Forkast» over toppen, står de i stedet ved «Last ned».
+  // Knappene trykker på sidens egne, så det som skjer er det samme. «Forkast» må trykkes to ganger.
+  const IKON = {
+    ja: '<path d="m5 12 4.5 4.5L19 7"/>',
+    nei: '<path d="M6 6l12 12M18 6 6 18"/>',
+  };
+  function godkjenning(wrap, hero) {
+    const sidens = [...wrap.querySelectorAll(':scope > p input[type="button"][onclick*="approval.php"]')];
+    const godkjenn = sidens.find((k) => !/delete=/.test(k.getAttribute('onclick')));
+    const forkast = sidens.find((k) => /delete=/.test(k.getAttribute('onclick')));
+    if (!godkjenn && !forkast) return;
+    const boks = document.createElement('div');
+    boks.className = 'nbx-hero-godkj';
+    const knapp = (klasse, tekst, ikon) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = klasse;
+      settHtml(b, `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IKON[ikon]}</svg><span>${esc(tekst)}</span>`);
+      boks.append(b);
+      return b;
+    };
+    const trykk = (sin) => {
+      boks.querySelectorAll('button').forEach((b) => { b.disabled = true; });
+      sin.click();
+    };
+    if (godkjenn) knapp('nbx-godkjenn', 'Godkjenn', 'ja').addEventListener('click', () => trykk(godkjenn));
+    if (forkast) {
+      const b = knapp('nbx-forkast', 'Forkast', 'nei');
+      let tidsfrist = 0;
+      b.addEventListener('click', () => {
+        if (b.classList.contains('nbx-bekreft')) {
+          clearTimeout(tidsfrist);
+          trykk(forkast);
+          return;
+        }
+        b.classList.add('nbx-bekreft');
+        b.querySelector('span').textContent = 'Bekreft forkast';
+        tidsfrist = setTimeout(() => {
+          b.classList.remove('nbx-bekreft');
+          b.querySelector('span').textContent = 'Forkast';
+        }, 4000);
+      });
+    }
+    const foot = hero.querySelector('.nbx-hero-foot');
+    foot.insertBefore(boks, foot.querySelector('.nbx-hero-dl'));
+    foot.classList.add('nbx-med-godkj');
+    sidens[0].closest('p').style.display = 'none';
+  }
+
   NBX.liste.push({
     navn: 'Plakat og handling på torrentsiden',
     sider: ['details'],
@@ -450,6 +500,7 @@
         </div>`);
       wrap.insertBefore(hero, details);
       wrap.classList.add('nbx-hero-wrap');
+      godkjenning(wrap, hero);
       // Samme bredde som tabellene under (#details er smalere enn rammen rundt)
       const w = details.getBoundingClientRect().width;
       if (w > 400) hero.style.width = Math.round(w) + 'px';

@@ -165,6 +165,28 @@ html.nbx-on .nbx-hero-wrap > h2 { display: none; }
   text-decoration: none !important;
 }
 .nbx-hero a.nbx-hero-dl:hover { background: #fff; color: #420202 !important; }
+/* Med knappene for godkjenning flyttes de ned på en egen linje når det blir trangt */
+.nbx-hero-foot.nbx-med-godkj { flex-wrap: wrap; row-gap: 10px; }
+.nbx-hero-foot.nbx-med-godkj .nbx-hero-rel { min-width: min(240px, 100%); }
+.nbx-hero-godkj { flex: none; display: inline-flex; flex-wrap: wrap; gap: 8px; }
+.nbx-hero .nbx-hero-godkj button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 6px 14px;
+  border: 1px solid #2f9e5b;
+  border-radius: 3px;
+  background: #2f9e5b;
+  color: #fff;
+  font: 700 12px tahoma, arial, helvetica, sans-serif;
+  cursor: pointer;
+}
+.nbx-hero .nbx-hero-godkj button:hover { background: #37b468; border-color: #37b468; }
+.nbx-hero .nbx-hero-godkj button.nbx-forkast { border-color: #ff8a8f; background: transparent; color: #ffb3b6; }
+.nbx-hero .nbx-hero-godkj button.nbx-forkast:hover { background: rgba(229, 72, 77, .2); }
+.nbx-hero .nbx-hero-godkj button.nbx-forkast.nbx-bekreft { border-color: #e5484d; background: #e5484d; color: #fff; }
+.nbx-hero .nbx-hero-godkj button:disabled { opacity: .55; cursor: default; }
 
 /* Mens data hentes */
 .nbx-hero.nbx-loading .nbx-hero-status:empty,
