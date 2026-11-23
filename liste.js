@@ -369,6 +369,8 @@
       leech: c.leech ? { n: tall(celle(c.leech)), href: c.leech.querySelector('a')?.getAttribute('href') } : null,
       uploader: up ? { name: celle(up), href: up.getAttribute('href') } : null,
       owner: tr.classList.contains('owner'),
+      // Sidens ✔ («Du har allerede denne i din klient»): torrenten ligger alt i klienten din
+      iKlient: [...navnTd.querySelectorAll('span[title]')].some((s) => /i din klient/i.test(s.getAttribute('title'))),
     };
   }
 
@@ -438,6 +440,7 @@
     const visRes = (sp) => { const r = kortRes(sp); return navnRes && /^\d{3,4}p$/i.test(r) ? navnRes : r; };
     const res = d.specs.map(visRes).find((x) => /^\d{3,4}p$/i.test(x)) || navnRes;
     const meta = [];
+    if (d.iKlient) meta.push(`<span class="nbx-i-klient" title="Du har allerede denne i din klient">${ikon('check')}I klienten</span>`);
     if (d.ny) meta.push('<span class="nbx-ny">Ny</span>');
     if (d.rating) meta.push(`<a class="nbx-rating" href="${esc(d.imdbHref)}" title="IMDb${d.top250 ? ' · Topp 250 #' + esc(d.top250) : ''}">${ikon('star')}${esc(d.rating)}</a>`);
     meta.push(`<span class="nbx-kat" style="color:${k[1]}">${esc(k[0])}</span>`);
@@ -448,7 +451,7 @@
     if (d.age) meta.push(`<span class="nbx-alder" title="${esc(d.date)}">${esc(d.age)} siden</span>`);
 
     const kort = document.createElement('article');
-    kort.className = 'nbx-kort' + (d.owner ? ' nbx-owner' : '');
+    kort.className = 'nbx-kort' + (d.owner ? ' nbx-owner' : '') + (d.iKlient ? ' nbx-har-klient' : '');
     kort.dataset.tid = d.tid;
     settHtml(kort, `
       <a class="nbx-kort-plakat" href="${esc(d.href)}" tabindex="-1" title="${esc([d.cat, ...d.specs].join(' · '))}" style="--kat:${k[1]}"><span><b>${esc(k[0])}</b>${res ? `<i>${esc(res)}</i>` : ''}</span></a>

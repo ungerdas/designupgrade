@@ -237,6 +237,29 @@
       },
     },
 
+    {
+      navn: 'Standardavatar når avataren ikke kan lastes',
+      // For noen brukere sender avatar.php et tomt bilde (0 byte, også uten utvidelsen), og da
+      // viser nettleseren et ødelagt bilde der avataren skulle vært. Da brukes sidens
+      // standardavatar i stedet. Originaladressen står i data-nbx-standard.
+      kjør() {
+        const STANDARD = '/themes/default/gfx/forums/default_avatar.gif';
+        const erAvatar = (el) => el instanceof HTMLImageElement
+          && (el.classList.contains('avatar') || /avatar\.php/i.test(el.getAttribute('src') || ''));
+        const bytt = (img) => {
+          if (!erAvatar(img) || img.dataset.nbxStandard !== undefined) return;
+          img.dataset.nbxStandard = img.getAttribute('src') || '';
+          img.src = STANDARD;
+        };
+        // Avatarer som feiler fra nå av, også i innlegg og kommentarer som hentes etterpå
+        document.addEventListener('error', (e) => bytt(e.target), true);
+        // Avatarer som alt har feilet (decode() avvises bare for bilder som ikke kan vises)
+        document.querySelectorAll('img.avatar, img[src*="avatar.php"]').forEach((img) => {
+          if (img.complete && img.naturalWidth === 0 && img.getAttribute('src')) img.decode().catch(() => bytt(img));
+        });
+      },
+    },
+
     // {
     //   navn: 'Eksempel: marker egne torrents',
     //   sider: ['browse'],
